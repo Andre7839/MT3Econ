@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>BioInput Ledger</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ============================= TOKENS ============================= */
+:root{
+  --paper:      #F2F1E6;
+  --surface:    #FBFAF4;
+  --surface-2:  #EFEEE0;
+  --ink:        #21261D;
+  --ink-soft:   #565C4C;
+  --muted:      #8B9078;
+  --line:       #DCDCC9;
+  --line-soft:  #E7E6D8;
+  --accent:     #B96A15;
+  --accent-ink: #6E3E0C;
+  --accent-soft:#F0DCC1;
+  --crop:       #3F6B34;
+  --crop-soft:  #DDE7D3;
+  --sky:        #2B4C6F;
+  --sky-soft:   #DAE3EC;
+
+  --good:       #0ca30c;
+  --warning:    #b8790f;
+  --serious:    #c1592f;
+  --critical:   #b3342f;
+
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
+  --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+  --div-pos:#2a78d6; --div-neg:#e34948; --div-mid:#f0efec;
+
+  --shadow: 0 1px 2px rgba(33,38,29,0.06), 0 6px 20px -8px rgba(33,38,29,0.18);
+  --radius: 10px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:      #14160F;
+    --surface:    #1B1E14;
+    --surface-2:  #21241A;
+    --ink:        #ECEEE2;
+    --ink-soft:   #ABB098;
+    --muted:      #7B8069;
+    --line:       #33382A;
+    --line-soft:  #292E20;
+    --accent:     #E3A64A;
+    --accent-ink: #F6D9A6;
+    --accent-soft:#3A2E17;
+    --crop:       #7CB36B;
+    --crop-soft:  #23301E;
+    --sky:        #7FA8CF;
+    --sky-soft:   #1D2A38;
+
+    --good:       #0ca30c;
+    --warning:    #d99a1e;
+    --serious:    #ec835a;
+    --critical:   #e66767;
+
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+    --s5:#d55181; --s6:#3fbf3f; --s7:#9085e9; --s8:#e66767;
+    --div-pos:#3987e5; --div-neg:#e66767; --div-mid:#383835;
+
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px -10px rgba(0,0,0,0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:      #14160F;
+  --surface:    #1B1E14;
+  --surface-2:  #21241A;
+  --ink:        #ECEEE2;
+  --ink-soft:   #ABB098;
+  --muted:      #7B8069;
+  --line:       #33382A;
+  --line-soft:  #292E20;
+  --accent:     #E3A64A;
+  --accent-ink: #F6D9A6;
+  --accent-soft:#3A2E17;
+  --crop:       #7CB36B;
+  --crop-soft:  #23301E;
+  --sky:        #7FA8CF;
+  --sky-soft:   #1D2A38;
+
+  --good:       #0ca30c;
+  --warning:    #d99a1e;
+  --serious:    #ec835a;
+  --critical:   #e66767;
+
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+  --s5:#d55181; --s6:#3fbf3f; --s7:#9085e9; --s8:#e66767;
+  --div-pos:#3987e5; --div-neg:#e66767; --div-mid:#383835;
+
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px -10px rgba(0,0,0,0.5);
+  color-scheme: dark;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:14.5px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{
+  font-family:"Bricolage Grotesque", "Public Sans", sans-serif;
+  font-weight:700;
+  text-wrap:balance;
+  margin:0;
+  letter-spacing:-0.01em;
+}
+.mono, .num{font-family:"IBM Plex Mono", ui-monospace, monospace; font-variant-numeric:tabular-nums;}
+a{color:var(--accent);}
+button{font-family:inherit;}
+::selection{background:var(--accent-soft);}
+
+/* ============================= LAYOUT ============================= */
+.app{
+  display:grid;
+  grid-template-columns: 372px minmax(0,1fr);
+  min-height:100vh;
+}
+.app > *{min-width:0;}
+@media (max-width: 980px){
+  .app{grid-template-columns: minmax(0,1fr);}
+}
+
+.sidebar{
+  background:var(--surface);
+  border-right:1px solid var(--line);
+  padding:22px 20px 40px;
+  position:sticky; top:0; align-self:start;
+  max-height:100vh; overflow-y:auto;
+}
+@media (max-width: 980px){
+  .sidebar{position:static; max-height:none; overflow-y:visible;}
+}
+.brand{
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:4px;
+}
+.brand-mark{
+  width:34px;height:34px;border-radius:8px;
+  background:linear-gradient(135deg, var(--crop), var(--accent));
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px; flex:none;
+  box-shadow: var(--shadow);
+}
+.brand h1{font-size:19px;}
+.brand-sub{font-size:11.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-top:2px;}
+
+.field-note{
+  font-size:12px; color:var(--ink-soft); margin:10px 0 18px;
+  padding:9px 11px; background:var(--surface-2); border-radius:8px;
+  border:1px solid var(--line-soft);
+}
+
+.section{margin-top:22px;}
+.section-head{
+  display:flex; align-items:center; justify-content:space-between;
+  cursor:pointer; user-select:none;
+  padding-bottom:7px; border-bottom:1px solid var(--line);
+  margin-bottom:12px;
+}
+.section-head h2{
+  font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--ink-soft); font-family:"Public Sans",sans-serif; font-weight:700;
+}
+.section-head .chev{color:var(--muted); font-size:11px; transition:transform .15s ease;}
+.section.collapsed .chev{transform:rotate(-90deg);}
+.section.collapsed .section-body{display:none;}
+
+.row{display:flex; gap:10px; align-items:flex-end;}
+.field{margin-bottom:12px;}
+.field label{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-size:12px; font-weight:600; color:var(--ink-soft); margin-bottom:5px;
+}
+.field label .val{font-family:"IBM Plex Mono",monospace; color:var(--accent-ink); font-weight:600; font-size:12px;}
+select, input[type=number], input[type=text]{
+  width:100%; padding:8px 9px; border-radius:7px;
+  border:1px solid var(--line); background:var(--surface);
+  color:var(--ink); font-size:13.5px; font-family:inherit;
+}
+input[type=number]{font-family:"IBM Plex Mono",monospace;}
+select:focus, input:focus{outline:2px solid var(--accent); outline-offset:1px;}
+input[type=range]{
+  width:100%; accent-color:var(--accent); height:18px; cursor:pointer;
+}
+.unit-input{position:relative;}
+.unit-input .suffix{
+  position:absolute; right:9px; top:50%; transform:translateY(-50%);
+  font-size:11.5px; color:var(--muted); pointer-events:none;
+}
+.field-2col{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+
+.chip-group{display:flex; flex-wrap:wrap; gap:6px;}
+.chip{
+  border:1px solid var(--line); background:var(--surface);
+  border-radius:999px; padding:6px 11px; font-size:12.5px; font-weight:600;
+  cursor:pointer; color:var(--ink-soft); transition:all .12s ease;
+}
+.chip:hover{border-color:var(--accent);}
+.chip.active{
+  background:var(--accent); border-color:var(--accent); color:#fff;
+}
+
+.preset-card{
+  border:1px solid var(--line); border-radius:9px; padding:11px 12px;
+  cursor:pointer; margin-bottom:8px; background:var(--surface);
+  transition: border-color .12s ease, background .12s ease;
+}
+.preset-card:hover{border-color:var(--accent);}
+.preset-card.active{
+  border-color:var(--accent); background:var(--accent-soft);
+}
+.preset-card .pt{font-weight:700; font-size:13.5px;}
+.preset-card .ps{font-size:11.5px; color:var(--muted); margin-top:2px;}
+
+.crop-info{
+  border:1px solid var(--line-soft); background:var(--surface-2); border-radius:9px;
+  padding:10px 12px; margin:-2px 0 14px; font-size:12px;
+}
+.crop-info .ci-top{margin-bottom:5px;}
+.crop-info .ci-note{color:var(--ink-soft); margin-bottom:6px;}
+.crop-info .ci-link{
+  display:inline-block; font-size:11.5px; color:var(--accent-ink); text-decoration:none;
+  border-bottom:1px dotted var(--accent-ink); margin-bottom:6px; word-break:break-word;
+}
+.crop-info .ci-link:hover{opacity:0.75;}
+.crop-info .ci-caveat{
+  font-size:11px; color:var(--muted); line-height:1.5; padding-top:6px; border-top:1px dashed var(--line);
+}
+
+.item-divider{
+  font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+  color:var(--muted); margin:16px 0 8px; padding-top:12px; border-top:1px dashed var(--line);
+}
+.item-editor{
+  border:1px solid var(--line-soft); background:var(--surface-2); border-radius:9px;
+  padding:10px; margin-bottom:10px;
+}
+.item-editor-title{font-size:12px; font-weight:700; color:var(--ink-soft); margin-bottom:7px;}
+.item-list{display:flex; flex-direction:column; gap:5px; margin-bottom:6px;}
+.item-row{
+  display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1.15fr) 78px 22px;
+  gap:5px; align-items:center;
+}
+.item-row select.item-cat, .item-row input.item-name, .item-row input.item-amt{
+  width:100%; min-width:0; padding:5px 6px; font-size:11.5px;
+  border:1px solid var(--line); border-radius:6px; background:var(--surface); color:var(--ink);
+}
+.item-row input.item-amt{font-family:"IBM Plex Mono",monospace; text-align:right;}
+.item-row select.item-cat{color:var(--ink-soft); font-size:11px;}
+.item-del{
+  border:none; background:transparent; color:var(--muted); font-size:16px; line-height:1;
+  cursor:pointer; padding:2px; border-radius:5px; justify-self:center;
+}
+.item-del:hover{color:var(--status-bad, #c0392b); background:var(--surface);}
+.item-add-row{margin-top:2px;}
+.item-add-row select.item-cat, .item-add-row input.item-name, .item-add-row input.item-amt{
+  border-style:dashed;
+}
+.item-add-btn{
+  border:1px solid var(--accent); background:var(--accent); color:#fff; border-radius:6px;
+  font-size:11px; font-weight:700; cursor:pointer; padding:5px 4px;
+}
+.item-add-btn:hover{opacity:.85;}
+.item-total{
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-size:12px; font-weight:700; color:var(--ink); padding-top:7px;
+  border-top:1px solid var(--line-soft); margin-top:2px;
+}
+.item-total .hint{font-weight:500; font-size:10.5px;}
+
+.reset-btn{
+  width:100%; margin-top:18px; padding:10px; border-radius:8px;
+  border:1px dashed var(--line); background:transparent; color:var(--ink-soft);
+  font-size:12.5px; font-weight:600; cursor:pointer;
+}
+.reset-btn:hover{border-color:var(--accent); color:var(--accent-ink);}
+
+.io-row{display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:8px;}
+.io-btn{
+  padding:8px 6px; border-radius:8px; border:1px solid var(--line); background:var(--surface);
+  color:var(--ink-soft); font-size:11.5px; font-weight:600; cursor:pointer; text-align:center;
+}
+.io-btn:hover{border-color:var(--accent); color:var(--accent-ink);}
+.io-btn-wide{width:100%; margin-top:7px;}
+.io-status{font-size:11px; color:var(--muted); margin-top:6px; min-height:14px;}
+.io-status.ok{color:var(--good, #2e7d32);}
+.io-status.err{color:var(--critical, #c0392b);}
+
+/* ============================= MAIN ============================= */
+.main{padding:26px 32px 60px; max-width:1200px;}
+.topbar{
+  display:flex; align-items:baseline; justify-content:space-between;
+  flex-wrap:wrap; gap:10px; margin-bottom:6px;
+}
+.topbar .scenario{
+  font-size:13px; color:var(--ink-soft);
+}
+.topbar .scenario b{color:var(--ink); font-weight:700;}
+
+.tabs{
+  display:flex; gap:2px; margin:18px 0 22px; border-bottom:1px solid var(--line);
+  overflow-x:auto;
+}
+.tab-btn{
+  padding:10px 16px; font-size:13.5px; font-weight:600; color:var(--ink-soft);
+  background:none; border:none; cursor:pointer; white-space:nowrap;
+  border-bottom:2px solid transparent; margin-bottom:-1px;
+}
+.tab-btn:hover{color:var(--ink);}
+.tab-btn.active{color:var(--accent-ink); border-bottom-color:var(--accent);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:18px 20px; box-shadow:var(--shadow);
+}
+.card + .card{margin-top:16px;}
+.card h3{font-size:15px; margin-bottom:3px;}
+.card .sub{font-size:12px; color:var(--muted); margin-bottom:14px;}
+
+.grid-4{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px;}
+.grid-3{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px;}
+.grid-2{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px;}
+.two-col{display:grid; grid-template-columns:1.1fr 1fr; gap:16px;}
+.two-col > *{min-width:0;}
+@media (max-width:900px){.grid-4{grid-template-columns:repeat(2,minmax(0,1fr));} .grid-3{grid-template-columns:minmax(0,1fr);} .grid-2{grid-template-columns:minmax(0,1fr);} .two-col{grid-template-columns:minmax(0,1fr);}}
+
+.stat{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:15px 16px; position:relative; overflow:hidden; box-shadow:var(--shadow);
+}
+.stat::before{
+  content:""; position:absolute; inset:0 0 auto 0; height:3px;
+  background:var(--stat-color, var(--accent));
+}
+.stat .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700;}
+.stat .v{font-family:"Bricolage Grotesque",sans-serif; font-size:26px; font-weight:700; margin-top:6px; font-variant-numeric:tabular-nums;}
+.stat .v.pos{color:var(--good);}
+.stat .v.neg{color:var(--critical);}
+.stat .foot{font-size:11.5px; color:var(--ink-soft); margin-top:5px;}
+.pill{
+  display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700;
+  padding:3px 8px; border-radius:999px; margin-top:8px;
+}
+.pill.good{background:color-mix(in oklab, var(--good) 16%, transparent); color:var(--good);}
+.pill.bad{background:color-mix(in oklab, var(--critical) 16%, transparent); color:var(--critical);}
+.pill::before{content:"●"; font-size:8px;}
+
+table{border-collapse:collapse; width:100%; font-size:12.5px;}
+.table-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:9px;}
+th,td{padding:7px 10px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--line-soft);}
+th:first-child,td:first-child{text-align:left; position:sticky; left:0; background:inherit;}
+thead th{
+  background:var(--surface-2); color:var(--ink-soft); font-weight:700; font-size:11px;
+  text-transform:uppercase; letter-spacing:.03em; position:sticky; top:0; z-index:2;
+}
+thead th:first-child{z-index:3;}
+tbody tr:nth-child(even){background:color-mix(in oklab, var(--surface-2) 45%, transparent);}
+tbody tr:hover{background:var(--accent-soft);}
+tbody tr.year-0 td{font-weight:700; border-bottom:2px solid var(--line);}
+tbody tr.final td{font-weight:700; border-top:2px solid var(--line);}
+td.neg{color:var(--critical);}
+td.pos-strong{color:var(--good); font-weight:700;}
+
+.legend{display:flex; flex-wrap:wrap; gap:14px; font-size:12px; color:var(--ink-soft); margin-top:10px;}
+.legend .li{display:flex; align-items:center; gap:6px;}
+.legend .sw{width:10px;height:10px;border-radius:3px; flex:none;}
+
+.info-note{
+  display:flex; gap:9px; font-size:12.5px; color:var(--ink-soft);
+  background:var(--surface-2); border:1px solid var(--line-soft); border-radius:8px;
+  padding:10px 12px; margin-top:14px;
+}
+.info-note .ic{flex:none;}
+
+/* sensitivity + tornado */
+.param-picker{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+.tornado-row{display:flex; align-items:center; gap:10px; padding:7px 0; border-bottom:1px solid var(--line-soft);}
+.tornado-row:last-child{border-bottom:none;}
+.tornado-row .pname{width:150px; flex:none; font-size:12.5px; font-weight:600;}
+.tornado-row .track{flex:1; position:relative; height:22px;}
+.tornado-row .val{width:150px; flex:none; font-size:11.5px; color:var(--ink-soft); text-align:right;}
+
+.goalseek-result{
+  display:flex; align-items:center; gap:14px; padding:14px 16px;
+  background:var(--surface-2); border-radius:9px; border:1px solid var(--line-soft);
+}
+.goalseek-result .big{font-family:"Bricolage Grotesque",sans-serif; font-size:24px; font-weight:700;}
+
+.btn{
+  padding:9px 16px; border-radius:8px; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink); font-weight:700; font-size:13px; cursor:pointer;
+}
+.btn.primary{background:var(--accent); border-color:var(--accent); color:#fff;}
+.btn:hover{filter:brightness(0.97);}
+.btn.primary:hover{filter:brightness(1.06);}
+
+.hint{font-size:12px; color:var(--muted);}
+.kbd-note{font-size:11.5px;color:var(--muted); margin-top:4px;}
+
+.badge{
+  display:inline-block; font-size:10.5px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.04em; padding:2px 7px; border-radius:5px;
+  background:var(--sky-soft); color:var(--sky);
+}
+.badge.crop{background:var(--crop-soft); color:var(--crop);}
+
+svg text{font-family:"Public Sans",sans-serif;}
+svg .num-lbl{font-family:"IBM Plex Mono",monospace;}
+
+footer.credits{margin-top:34px; font-size:11.5px; color:var(--muted); line-height:1.7;}
+</style>
+</head>
+<body>
+<style>
+body{background:var(--paper);}
+.shell{max-width:1320px; margin:0 auto; padding:0 28px 60px;}
+.hdr{position:sticky; top:0; z-index:20; background:color-mix(in oklab, var(--paper) 92%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); margin:0 -28px 24px; padding:12px 28px;}
+.hdr-in{max-width:1320px; margin:0 auto; display:flex; align-items:center; gap:22px; flex-wrap:wrap;}
+.logo{display:flex; align-items:center; gap:10px; font-family:"Bricolage Grotesque",sans-serif; font-weight:700; font-size:18px; color:var(--ink);}
+.logo .mk{width:32px; height:32px; border-radius:9px; display:grid; place-items:center; background:linear-gradient(135deg,var(--good),var(--accent)); color:#fff; font-size:16px;}
+.steps{display:flex; gap:4px; background:var(--surface-2); padding:4px; border-radius:12px; border:1px solid var(--line);}
+.steps button{border:none; background:none; padding:8px 14px; border-radius:9px; font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer; display:flex; align-items:center; gap:7px;}
+.steps button .n{width:20px; height:20px; border-radius:50%; display:grid; place-items:center; font-size:11px; background:var(--line); color:var(--ink-soft);}
+.steps button.on{background:var(--surface); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.08);}
+.steps button.on .n{background:var(--accent); color:#fff;}
+.glob{margin-left:auto; display:flex; gap:12px; align-items:center;}
+.glob label{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); display:flex; align-items:center; gap:6px;}
+.glob input{width:64px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; font-family:"IBM Plex Mono",monospace; font-size:13px; background:var(--surface); color:var(--ink); text-align:right;}
+.page{display:none;} .page.on{display:block;}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:20px 22px; margin-bottom:18px; box-shadow:0 1px 2px rgba(0,0,0,.03);}
+.card h3{margin:0 0 14px; font-family:"Bricolage Grotesque",sans-serif; font-size:16px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:10px;}
+.card h3 .sp{flex:1;}
+.toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+.btn{border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:9px; padding:7px 12px; font-size:12.5px; font-weight:600; cursor:pointer; white-space:nowrap;}
+.btn:hover{border-color:var(--accent);}
+.btn.pri{background:var(--accent); border-color:var(--accent); color:#fff;}
+.btn.ghost{border-style:dashed; color:var(--ink-soft);}
+.sel{padding:8px 10px; border:1px solid var(--line); border-radius:9px; font-size:13.5px; background:var(--surface); color:var(--ink); min-width:0;}
+.studybar{display:grid; grid-template-columns:minmax(260px,2fr) minmax(200px,1fr) auto; gap:12px; align-items:end;}
+.fl{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:5px;}
+.chips{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-top:16px;}
+.chip{border:1px solid var(--line-soft); background:var(--surface-2); border-radius:11px; padding:12px 14px;}
+.chip .k{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);}
+.chip .v{font-family:"Bricolage Grotesque",sans-serif; font-size:21px; font-weight:700; color:var(--ink); margin-top:3px;}
+.chip .s{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+.chip input{width:100%; margin-top:4px; padding:5px 8px; border:1px solid var(--line); border-radius:7px; font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:600; background:var(--surface); color:var(--ink);}
+.note{font-size:12px; color:var(--warning); margin-top:10px;}
+table.t{width:100%; border-collapse:collapse; font-size:13px;}
+table.t th{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); text-align:right; padding:8px 10px; border-bottom:1px solid var(--line); background:var(--surface-2); white-space:nowrap;}
+table.t th.l, table.t td.l{text-align:left;}
+table.t td{padding:5px 10px; border-bottom:1px solid var(--line-soft); text-align:right; font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink);}
+table.t td.l{font-family:"Public Sans",sans-serif; font-size:13px;}
+table.t tr.grp td{background:var(--surface-2); font-family:"Public Sans",sans-serif; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); padding-top:9px;}
+table.t tr.tot td{font-weight:700; border-top:1.5px solid var(--line); background:color-mix(in oklab, var(--surface-2) 60%, var(--surface));}
+table.t tr.aev td{font-weight:800; font-size:13.5px; background:var(--accent-soft);}
+table.t input{width:100%; max-width:130px; padding:5px 8px; border:1px solid transparent; border-radius:7px; background:var(--surface-2); font-family:"IBM Plex Mono",monospace; font-size:12.5px; text-align:right; color:var(--ink);}
+table.t input:hover{border-color:var(--line);} table.t input:focus{outline:none; border-color:var(--accent); background:var(--surface);}
+table.t input.txt{text-align:left; font-family:"Public Sans",sans-serif; font-size:13px; max-width:none;}
+table.t select{padding:4px 6px; border:1px solid var(--line); border-radius:7px; font-size:11.5px; background:var(--surface); color:var(--ink-soft);}
+table.t td.ro{color:var(--ink-soft);}
+table.t .ovr input{background:color-mix(in oklab, var(--accent) 14%, var(--surface)); border-color:color-mix(in oklab, var(--accent) 45%, var(--line));}
+.rs{border:none; background:none; color:var(--accent); cursor:pointer; font-size:13px; padding:0 2px;}
+.x{border:none; background:none; color:var(--muted); cursor:pointer; font-size:16px; line-height:1;}
+.x:hover{color:var(--critical);}
+.add{border:1px dashed var(--line); background:none; color:var(--ink-soft); border-radius:7px; padding:4px 10px; font-size:12px; cursor:pointer; margin:4px 0;}
+.info{display:inline-grid; place-items:center; width:17px; height:17px; border-radius:50%; border:1px solid var(--accent); color:var(--accent); background:var(--surface); font-size:10.5px; font-weight:800; font-style:italic; font-family:Georgia,serif; cursor:help; margin-left:6px; flex:none;}
+.info:hover{background:var(--accent); color:#fff;}
+.nmw{display:flex; align-items:center;}
+.neg{color:var(--critical)!important;} .pos{color:var(--good)!important;}
+.alts{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px;}
+.alt{border:1px solid var(--line); border-radius:14px; padding:16px; background:var(--surface); position:relative; border-top:4px solid var(--c);}
+.alt .nm{width:100%; border:none; border-bottom:1px dashed var(--line); font-family:"Bricolage Grotesque",sans-serif; font-weight:700; font-size:16px; padding:2px 0 6px; margin-bottom:12px; background:none; color:var(--ink);}
+.alt .x{position:absolute; top:10px; right:10px;}
+.fg{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.f label{display:block; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin-bottom:4px;}
+.f .iw{display:flex; align-items:center; border:1px solid var(--line); border-radius:8px; background:var(--surface-2); overflow:hidden;}
+.f .iw input{flex:1; min-width:0; border:none; background:none; padding:7px 8px; font-family:"IBM Plex Mono",monospace; font-size:13.5px; color:var(--ink);}
+.f .iw span{font-size:11px; color:var(--muted); padding:0 8px;}
+.seg{display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden;}
+.seg button{flex:1; border:none; background:var(--surface-2); padding:6px; font-size:11.5px; font-weight:600; color:var(--ink-soft); cursor:pointer;}
+.seg button.on{background:var(--ink); color:var(--paper);}
+.alt .dose{font-size:11.5px; color:var(--ink-soft); margin-top:10px; padding-top:8px; border-top:1px solid var(--line-soft); font-family:"IBM Plex Mono",monospace;}
+.addalt{border:2px dashed var(--line); border-radius:14px; display:grid; place-items:center; color:var(--ink-soft); font-weight:600; cursor:pointer; min-height:230px; background:none; font-size:14px;}
+.addalt:hover{border-color:var(--accent); color:var(--accent);}
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; margin-bottom:18px;}
+.kpi{border:1px solid var(--line); border-radius:14px; padding:16px 18px; background:var(--surface); border-top:4px solid var(--c);}
+.kpi .t{font-family:"Bricolage Grotesque",sans-serif; font-weight:700; font-size:15px; display:flex; justify-content:space-between; align-items:center;}
+.kpi .big{font-family:"Bricolage Grotesque",sans-serif; font-size:28px; font-weight:800; margin:8px 0 2px;}
+.kpi .sub{font-size:11.5px; color:var(--muted);}
+.kpi .row{display:flex; justify-content:space-between; font-size:12.5px; padding:5px 0; border-top:1px solid var(--line-soft); margin-top:6px;}
+.kpi .row b{font-family:"IBM Plex Mono",monospace;}
+.pill{display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px;}
+.pill.g{background:color-mix(in oklab,var(--good) 16%,transparent); color:var(--good);}
+.pill.r{background:color-mix(in oklab,var(--critical) 14%,transparent); color:var(--critical);}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start;}
+.grid2>.card, .shell .card+.card{margin-top:0;}
+.legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft); margin-top:8px;}
+.legend i{display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px;}
+.tabsm{display:flex; gap:6px; margin-bottom:10px;}
+.tabsm button{border:1px solid var(--line); background:var(--surface); border-radius:20px; padding:5px 12px; font-size:12px; font-weight:600; color:var(--ink-soft); cursor:pointer;}
+.tabsm button.on{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+.empty{color:var(--muted); font-size:13px; padding:24px; text-align:center;}
+.filter{padding:8px 11px; border:1px solid var(--line); border-radius:9px; font-size:13px; width:260px; background:var(--surface); color:var(--ink);}
+table.lib tr{cursor:pointer;} table.lib tr:hover td{background:var(--accent-soft);} table.lib tr.cur td{background:var(--accent-soft); font-weight:700;}
+.toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--paper); padding:9px 16px; border-radius:9px; font-size:13px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:99;}
+@media (max-width:1000px){ .alts,.grid2{grid-template-columns:1fr;} .studybar{grid-template-columns:1fr;} .glob{margin-left:0;} }
+</style>
+
+<div class="shell">
+  <div class="hdr"><div class="hdr-in">
+    <div class="logo"><div class="mk">🌱</div>BioInput Ledger</div>
+    <div class="steps" id="steps">
+      <button data-p="control" class="on"><span class="n">1</span>Control</button>
+      <button data-p="alts"><span class="n">2</span>Alternatives</button>
+      <button data-p="econ"><span class="n">3</span>Economics</button>
+      <button data-p="sens"><span class="n">4</span>Sensitivity</button>
+      <button data-p="lib"><span class="n">≡</span>Study library</button>
+    </div>
+    
+  </div></div>
+
+  <section class="page on" id="p-control"></section>
+  <section class="page" id="p-alts"></section>
+  <section class="page" id="p-econ"></section>
+  <section class="page" id="p-sens"></section>
+  <section class="page" id="p-lib"></section>
+</div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileIn" style="display:none">
+
+<script>
+/* crRate: interest rate the study uses for capital recovery (non-cash overhead).
+   UC Davis ARE / UCCE current cost & return studies (coststudies.ucdavis.edu/current/commodities).
+   Values PER ACRE as printed in each study's "Costs and Returns per Acre" table (production / mature year).
+   g: gross revenue lines [name, qty, unit, price]  (qty=null → price holds the $/acre value)
+   op: total operating costs (incl. water and interest) · int: interest on operating capital (rate)
+   cash: total cash overhead · non: total non-cash overhead (capital recovery) · wIn: applied water (ac-in) · wCost: water $ */
+const F = 'https://coststudyfiles.ucdavis.edu/';
+const STUDIES = [
+ {c:'Alfalfa', l:'Sacramento Valley & N. San Joaquin Valley, 2020', u:F+'uploads/cs_public/02/ee/02ee0710-8c2c-41ea-8b25-736d1854b737/alfalfasvdraft10420.pdf', g:[['Alfalfa hay',7,'ton',225]], op:1232, int:21, rate:.0525, crRate:0.055, cash:385, non:353, wIn:42, wCost:350},
+ {c:'Alfalfa', l:'Scott Valley (Intermountain), mixed irrigation, 2020', u:F+'uploads/cs_public/c4/36/c436fc40-8c6b-4ebb-97f6-e407160608bc/2020alfalfascottvalley-mixed_irrigation-1.pdf', g:[['Alfalfa hay',6,'ton',215]], op:652, int:14, rate:.0525, crRate:0.055, cash:93, non:414, wIn:24, wCost:114},
+ {c:'Alfalfa', l:'Organic, California, 2020', u:F+'uploads/pub/2021/04/20/alfalfaorganiccadraft42021.pdf', g:[['Organic alfalfa hay',7,'ton',260]], op:886, int:15, rate:.0525, crRate:0.055, cash:398, non:306, wIn:42, wCost:350},
+ {c:'Almonds', l:'San Joaquin Valley South, 2024', u:F+'2025/08/11/2024%20AlmondsSJVsouth.Final%20Draft.8.3.25.pdf', g:[['Almonds',2800,'lb',1.60]], op:5078, int:152, rate:.09, crRate:0.0825, cash:678, non:3913, wIn:58, wCost:1931},
+ {c:'Almonds', l:'Sacramento Valley (micro-sprinkler), 2024', u:F+'2024/07/09/2024SacValleyAlmonds7.5.24.%20Final%20draft.pdf', g:[['Almonds',2200,'lb',1.60]], op:3720, int:63, rate:.09, crRate:0.0825, cash:662, non:3418, wIn:38.25, wCost:637},
+ {c:'Almonds', l:'San Joaquin Valley North, 2024', u:F+'2024/09/30/AlmondsSJVNorth%20Final%20draft4.pdf', g:[['Almonds',2200,'lb',1.60]], op:3807, int:101, rate:.09, crRate:0.0825, cash:739, non:4069, wIn:42.25, wCost:704},
+ {c:'Almonds', l:'San Joaquin Valley North, self-fertile variety, 2024', u:F+'2024/09/30/2024%20AlmondsSPFinalDraft%202.pdf', g:[['Almonds',2200,'lb',1.70]], op:3584, int:89, rate:.09, crRate:0.0825, cash:739, non:4064, wIn:42.25, wCost:704},
+ {c:'Almonds', l:'Organic, N. San Joaquin Valley, 2024', u:F+'2025/07/18/AlmondOrganicNSJV%20Final%20Publish_Update.pdf', g:[['Organic almonds',1800,'lb',2.25]], op:3905, int:93, rate:.09, crRate:0.0825, cash:828, non:4386, wIn:42, wCost:700},
+ {c:'Apples', l:'Processing, Central Coast, 2023', u:F+'uploads/pub/2023/11/13/2023applesccfullfinal-nov23.pdf', g:[['Apples for processing',26.5,'ton',370]], op:6021, int:155, rate:.07, crRate:0.085, cash:1145, non:2786, wIn:6, wCost:141},
+ {c:'Apples', l:'Organic processing, Central Coast, 2023', u:F+'uploads/pub/2023/11/13/2023organicapplesccfullfinal-nov23.pdf', g:[['Organic apples for processing',20,'ton',405]], op:5272, int:145, rate:.07, crRate:0.085, cash:1198, non:2781, wIn:6, wCost:141},
+ {c:'Avocados', l:'High-density, San Diego County, 2020', u:F+'uploads/cs_public/b4/3d/b43d58d9-1e91-4a3e-80f9-a2edb14958b0/2020avocadohighdensitysandiegocounty.pdf', g:[['Avocados',16220,'lb',1.3868]], y:[16220,'lb'], yNote:'4-year experimental average yield; price implied by the study gross return ($22,494/ac)', op:11920, int:152, rate:.0525, crRate:0.055, cash:716, non:3596, wIn:45.48, wCost:7201},
+ {c:'Beans', l:'Blackeye, San Joaquin Valley South, 2026', u:F+'2026/09/25/blackeyebeans-sjv-south-2026.pdf', g:[['Blackeye beans',32,'cwt',55]], op:1673, int:18, rate:.0825, crRate:0.075, cash:278, non:1931, wIn:30, wCost:625, note:'Operating total derived as total cost − overheads.'},
+ {c:'Beans', l:'Baby lima, Sacramento & N. San Joaquin Valley, 2023', u:F+'2024/03/28/2023%20Baby%20Lima%20Final.pdf', g:[['Baby lima beans',28,'cwt',75]], op:1317.17, int:23.8, rate:.085, crRate:0.07, cash:481.82, non:65.44, wIn:30, wCost:249.9, y:[28,'cwt (cleaned)']},
+ {c:'Beans', l:'Garbanzo, Sacramento Valley, 2018', u:F+'uploads/cs_public/8c/23/8c232c39-e3b8-4f12-ac02-911cb4602cc2/2018garbanzobeansacvalfinaldraft22018.pdf', g:[['Garbanzo beans',26.5,'cwt',49]], op:891, int:20, rate:.05, crRate:0.055, cash:285, non:152, wIn:12.16, wCost:91},
+ {c:'Beans', l:'Garbanzo, San Joaquin Valley South, 2018', u:F+'uploads/cs_public/5b/00/5b001795-5a45-4340-a83f-76ca9d8ce6af/2018garbanzobeansjvsouthfinaldraft3118.pdf', g:[['Garbanzo beans',30,'cwt',49]], op:943, int:19, rate:.05, crRate:0.05, cash:326, non:192, wIn:25.16, wCost:189},
+ {c:'Beans', l:'Large lima, Sacramento & N. San Joaquin Valley, 2016', u:F+'uploads/cs_public/e5/1b/e51bb4b8-4469-4dc0-bfbf-81e34fadfdea/2016largelimabeansjvfinaldraftaug15.pdf', g:[['Large lima beans',25,'cwt',75]], op:1104, int:15, rate:.0425, crRate:0.0375, cash:454, non:40, wIn:30, wCost:225},
+ {c:'Blackberries', l:'Central Coast, production years 2–5, 2024', u:F+'2024/04/23/2024Blackberries-CorrectedFINAL-APRIL2024.pdf', g:[['Blackberries',4500,'tray',17]], op:63724, int:1302, rate:.09, crRate:0.0825, cash:6871, non:10030, wIn:24, wCost:720},
+ {c:'Broccoli', l:'Bunched 14s, Central Coast, 2023', u:F+'uploads/pub/2023/08/04/2023-brocbunch14s-full-final.pdf', g:[['Broccoli, bunched 14s',700,'carton',15]], op:11421, int:136, rate:.07, crRate:0.085, cash:2157, non:2010, wIn:18.5, wCost:435, note:'Non-cash overhead derived as total cost − cash costs.'},
+ {c:'Broccoli', l:'Crown cut, Central Coast, 2023', u:F+'uploads/pub/2023/08/04/2023-broccrowncut-full-final.pdf', g:[['Broccoli crowns',560,'carton',18]], op:9865, int:127, rate:.07, crRate:0.085, cash:2157, non:1676, wIn:18.5, wCost:435, note:'Non-cash overhead derived as total cost − cash costs.'},
+ {c:'Cherries', l:'San Joaquin Valley North, 2017', u:F+'uploads/cs_public/84/4f/844f0de3-7c1c-4bd3-89ac-893e3388c140/cherry2017_nsjv_final_draft4.pdf', y:[5.4,'ton (field)'], g:[['Cherries, packed (line 1)',329,'box',40],['Cherries, packed (line 2)',158,'box',41.87],['Cherries, culls/brine (line 3)',1080,'lb',0.40],['Cherries, culls/brine (line 4)',1080,'lb',0.80]], op:14857, int:69, rate:.045, crRate:0.05, cash:1112, non:2436, wIn:30, wCost:150},
+ {c:'Corn', l:'Field corn, Sacramento & N. San Joaquin Valley, 2015', u:F+'uploads/cs_public/03/dc/03dc4496-32af-47c6-b479-38e1d27c134e/15cornsacramentovalleyfinaldraftjuly20.pdf', g:[['Field corn',6,'ton',210]], op:1118, int:22, rate:.0575, crRate:0.0425, cash:112, non:87, wIn:31, wCost:168},
+ {c:'Corn', l:'Grain corn, San Joaquin Valley, 2015', u:F+'uploads/cs_public/8a/b9/8ab9b6ef-72ca-4762-af3c-50b487da72c5/corn-sjv-2015.pdf', g:[['Grain corn',6,'ton',240]], op:1204, int:27, rate:.0575, crRate:0.0425, cash:409, non:67, wIn:44, wCost:330},
+ {c:'Corn', l:'Silage corn, conservation tillage, San Joaquin Valley, 2015', u:F+'uploads/cs_public/a9/c5/a9c55e16-83cf-46f3-86b8-436ae2deb41f/15ctsilagecornsanjoaquinvalleyfinaldraftjuly20.pdf', g:[['Silage corn',32,'ton',48]], op:1232, int:20, rate:.0575, crRate:0.0425, cash:262, non:28, wIn:44, wCost:158},
+ {c:'Grapes – Raisins', l:'DOV raisins, open-gable trellis, San Joaquin Valley, 2016', u:F+'uploads/cs_public/43/85/4385b69b-078a-43d9-8f39-6ac149688fb5/16dovraisinsogtsjvfinaldraft111716.pdf', g:[['DOV raisins',4,'ton',1600]], op:2447, int:43, rate:.0425, crRate:0.0375, cash:439, non:1771, wIn:36, wCost:195},
+ {c:'Grapes – Raisins', l:'DOV raisins, overhead trellis, San Joaquin Valley, 2016', u:F+'uploads/cs_public/ec/ba/ecba9b89-f1e9-401c-9044-4afa2c060093/2016dovraisinsohtsjvfinaldraft111716.pdf', g:[['DOV raisins',5,'ton',1600]], op:2453, int:39, rate:.0425, crRate:0.0375, cash:441, non:1786, wIn:36, wCost:195},
+ {c:'Grapes – Table', l:'Flame Seedless (early), San Joaquin Valley South, 2018', u:F+'uploads/cs_public/03/e8/03e8865f-2b6b-4859-90c6-84414cd9d3f4/2018tablegrapessjvflameseedlessfinaldraft.pdf', g:[['Table grapes',1300,'box',17]], op:17867, int:185, rate:.05, crRate:0.055, cash:969, non:2833, wIn:36.1, wCost:433},
+ {c:'Grapes – Table', l:'Sheegene (early), San Joaquin Valley South, 2018', u:F+'uploads/cs_public/0f/72/0f72d185-bf9d-4952-b9d7-f8c122ce5d13/2018tablegrapessjvsheegenefinaldraft.pdf', g:[['Table grapes',1300,'box',17]], yNote:'Box count inferred from the gross return ($22,100 = 1,300 boxes × $17, as in the Flame Seedless study)', op:17792, int:181, rate:.05, crRate:0.055, cash:982, non:3027, wIn:36.1, wCost:433},
+ {c:'Grapes – Wine', l:'Cabernet Sauvignon, Paso Robles East, 2025', u:F+'2026/10/27/2025-cabernet-paso-robles-east.pdf', g:[['Cabernet Sauvignon',5,'ton',1700]], op:5464, int:132, rate:.0825, crRate:0.075, cash:982, non:4664, wIn:12, wCost:400},
+ {c:'Grapes – Wine', l:'Cabernet Sauvignon, Paso Robles West, 2025', u:F+'2026/10/27/2025-cabernet-paso-robles-west.pdf', g:[['Cabernet Sauvignon',3.5,'ton',3400]], op:10841, int:306, rate:.0825, rateAssumed:true, crRate:0.075, cash:1795, non:7276, wIn:0.4, wCost:17, note:'The study budgets only 0.4 ac-in of applied water ($17) — a water-change benefit is negligible here.'},
+ {c:'Grapes – Wine', l:'Cabernet Sauvignon, Livermore Valley, 2021', u:F+'uploads/pub/2021/12/07/2021livermorecabfinaldraft_120221.pdf', g:[['Cabernet Sauvignon',7,'ton',1600]], op:3961, int:74, rate:.0525, crRate:0.055, cash:869, non:3587, wIn:12.1, wCost:202},
+ {c:'Grapes – Wine', l:'Cabernet Sauvignon, Lodi (single high-wire), 2021', u:F+'uploads/pub/2022/02/28/2021_winegrape_highwire_lodi_22522.pdf', g:[['Cabernet Sauvignon',10,'ton',600]], op:2595, int:28, rate:.04, crRate:0.0475, cash:1164, non:2986, wIn:18, wCost:270},
+ {c:'Grapes – Wine', l:'Cabernet Sauvignon, Lodi (quadrilateral), 2021', u:F+'uploads/pub/2022/02/28/2021_grapewinelodi_22522.pdf', g:[['Cabernet Sauvignon',10,'ton',600]], op:3286, int:43, rate:.04, crRate:0.0475, cash:1183, non:3122, wIn:18, wCost:270},
+ {c:'Grapes – Wine', l:'Cabernet Sauvignon, Napa County, 2020', u:F+'uploads/cs_public/fe/24/fe24e27a-5c29-4cc3-a83c-63a31cd0c767/2020napawinegrape.pdf', g:[['Cabernet Sauvignon',4,'ton',8200]], op:9019, int:159, rate:.0525, rateAssumed:true, crRate:null, cash:2853, non:14298, wIn:5.74, wCost:96},
+ {c:'Grapes – Wine', l:'Cabernet Sauvignon, San Joaquin Valley South, 2019', u:F+'uploads/cs_public/2d/10/2d10450b-f265-45db-85d6-5b15a0fde6c0/19winegrapessjvsouthcabernet.pdf', g:[['Cabernet Sauvignon',13.5,'ton',365]], op:2525, int:32, rate:.0525, crRate:0.06, cash:1482, non:3491, wIn:36, wCost:600},
+ {c:'Grapes – Wine', l:'Rubired, San Joaquin Valley South, 2019', u:F+'uploads/cs_public/04/f1/04f1c430-0db8-469c-852f-c71f3bab7f32/19winegrapessjvsouthrubired.pdf', g:[['Rubired',20,'ton',273]], op:2525, int:30, rate:.0525, crRate:0.06, cash:1486, non:3403, wIn:36, wCost:600},
+ {c:'Grapes – Wine', l:'Chardonnay, San Joaquin Valley South, 2019', u:F+'uploads/cs_public/82/9b/829bd3f6-b232-40c5-9042-0f413e053971/19winegrapessjvsouthchardonnay.pdf', g:[['Chardonnay',14,'ton',403]], yNote:'Study yield 14 t/ac; price implied by gross return ($5,642/ac)', op:2579, int:34, rate:.0525, crRate:0.06, cash:1471, non:3335, wIn:36, wCost:600},
+ {c:'Grapes – Wine', l:'Colombard, San Joaquin Valley South, 2019', u:F+'uploads/cs_public/cb/93/cb938797-773f-4629-9a8c-13cf53cab75f/19winegrapessjvssouthcolombard.pdf', g:[['Colombard',20,'ton',289]], op:2584, int:31, rate:.0525, crRate:0.06, cash:1485, non:3402, wIn:36, wCost:600},
+ {c:'Lemons', l:'Eureka, Ventura County, 2020', u:F+'uploads/cs_public/38/fa/38fa8f9c-c93b-4c62-9740-a850bbc40df9/2020lemonsventuracounty.pdf', g:[['Eureka lemons',1018,'carton',16.42]], op:10797, int:152, rate:.0525, crRate:0.055, cash:1292, non:8273, wIn:30, wCost:750, note:'Non-cash overhead derived as total cost − cash costs.'},
+ {c:'Lettuce', l:'Wrapped iceberg, Central Coast, 2023', u:F+'uploads/pub/2023/08/04/2023-iceberglettuce-full-final.pdf', g:[['Iceberg lettuce, wrapped',900,'carton',21]], op:14584, int:144, rate:.07, crRate:0.085, cash:2168, non:3784, wIn:13, wCost:306, note:'Non-cash overhead derived as total cost − cash costs.'},
+ {c:'Lettuce', l:'Romaine hearts, Central Coast, 2023', u:F+'uploads/pub/2023/08/04/2023-romheartslettuce-full-final.pdf', g:[['Romaine hearts',850,'carton',24]], op:14179, int:145, rate:.07, crRate:0.085, cash:2168, non:2113, wIn:12, wCost:282, note:'Non-cash overhead derived as total cost − cash costs.'},
+ {c:'Olive Oil', l:'Super-high-density, Central Valley, 2025', u:F+'2026/11/06/2025-olives-olive-oil-central-valley.pdf', g:[['Olive oil',148,'gal',20]], y:[148,'gal oil (≈4 t olives)'], op:1736, int:37, rate:.0825, crRate:0.085, cash:554, non:3520, wIn:18, wCost:375},
+ {c:'Olives', l:'Table olives, traditional, Central Valley, 2023', u:F+'uploads/pub/2023/07/24/2023tableolivestrad71723.pdf', g:[['Table olives',5,'ton',1250]], op:5956, int:123, rate:.085, crRate:0.07, cash:960, non:2747, wIn:36, wCost:675},
+ {c:'Olives', l:'Table olives, modern (hedgerow), Central Valley, 2023', u:F+'uploads/pub/2023/11/30/2023moderntableolivedraft11302023.pdf', g:[['Table olives',7,'ton',1150]], op:4101, int:75, rate:.085, crRate:0.07, cash:840, non:2963, wIn:30, wCost:563},
+ {c:'Onions', l:'Dehydrating, Tulelake Basin (Intermountain), 2023', u:F+'2024/05/10/2023Onions-Final.pdf', g:[['Onions for dehydrating',465,'cwt',12],['Other gross returns',null,null,232.5]], y:[465,'cwt'], op:3615.29, int:65.05, rate:.085, crRate:0.07, cash:746.07, non:156.75, wIn:34.39, wCost:412.68},
+ {c:'Oranges', l:'Navels, San Joaquin Valley South, 2021', u:F+'uploads/pub/2021/08/12/2021orangessjvsouth.pdf', g:[['Navel oranges',564,'carton',17.80]], op:6659, int:128, rate:.04, crRate:null, cash:685, non:1948, wIn:32.2, wCost:708},
+ {c:'Peaches', l:'Late cling, Sacramento & San Joaquin Valleys, 2017', u:F+'uploads/cs_public/ef/85/ef8541d9-cc27-4b4a-a9bb-7442b559c075/2017peachsvsjv-lcling.pdf', g:[['Cling peaches',20,'ton',490]], op:5603, int:61, rate:.045, crRate:0.05, cash:1083, non:2197, wIn:42, wCost:210},
+ {c:'Pears', l:'Sacramento Valley (Sacramento County), 2023', u:F+'2024/05/02/23PearsSV-4.23.24.pdf', g:[['Pears (paid, line 1)',12,'ton',550],['Pears (paid, line 2)',10,'ton',550]], y:[23,'ton (incl. 1 t culls)'], op:9314, int:200, rate:.085, crRate:0.07, cash:722, non:2520, wIn:30, wCost:500, note:'Cash overhead derived as total cost − operating − non-cash.'},
+ {c:'Pistachios', l:'San Joaquin Valley South, 2020', u:F+'uploads/cs_public/e4/bd/e4bd9353-25a1-4258-b5b1-42a203bc09ad/2020pistachiosjvsouth.pdf', g:[['Pistachios',2800,'lb',2.115]], op:3210, int:59, rate:.0525, crRate:null, cash:578, non:2209, wIn:49.5, wCost:97, note:'Water line in the study is only $97 for 49.5 ac-in — pumping costs are likely carried elsewhere; check the water cost.'},
+ {c:'Plums', l:'San Joaquin Valley South, 2016', u:F+'uploads/cs_public/05/1e/051eabc3-9bdd-45cc-9c85-f122f8f275f0/2016plumssjvfinaldraft112316.pdf', g:[['Plums',900,'box',16]], op:11366, int:65, rate:.0425, crRate:0.0375, cash:545, non:1513, wIn:44, wCost:733},
+ {c:'Potatoes', l:'Chipping, Klamath Basin (Tulelake), 2023', u:F+'2024/05/10/23PotatoChipperKlamath-FINAL.pdf', g:[['Chipping potatoes',535,'cwt',11.25]], op:3016.83, int:73.35, rate:.085, crRate:0.07, cash:745.58, non:132.11, wIn:20.5, wCost:246, yNote:'Price implied by gross return ($6,018.75/ac ÷ 535 cwt)'},
+ {c:'Potatoes', l:'Fresh market, Klamath Basin (Tulelake), 2023', u:F+'2024/05/10/23PotatoFreshMktKlamath-Final.pdf', g:[['Fresh-market potatoes',490,'cwt',12]], op:3016.83, int:73.35, rate:.085, crRate:0.07, cash:745.58, non:132.11, wIn:20.5, wCost:246},
+ {c:'Prunes', l:'Southern San Joaquin Valley, 2023', u:F+'2024/03/27/2023.Prunes.SJV-Final-3.25.24.pdf', g:[['Prunes (dried plums)',3.125,'ton',2200]], op:5400, int:98, rate:.085, crRate:0.07, cash:729, non:3367, wIn:42.1, wCost:526},
+ {c:'Prunes', l:'Sacramento Valley, 2022', u:F+'uploads/pub/2023/04/21/2022prunessacvalley42023.pdf', g:[['Prunes (dried plums)',3.5,'ton',2000]], op:5037, int:70, rate:.07, crRate:0.065, cash:498, non:3310, wIn:30.11, wCost:502},
+ {c:'Raspberries', l:'Fresh market, Central Coast, production year 3, 2023', u:F+'uploads/pub/2023/12/15/23raspberry-fullfinal-dec2023.pdf', g:[['Raspberries',4750,'tray',17]], op:71900, int:803, rate:.07, crRate:0.085, cash:3639, non:4925, wIn:12, wCost:282},
+ {c:'Rice', l:'Delta region (continuous rice), 2022', u:F+'uploads/pub/2023/05/11/20022ricedeltacontinuousrotation5923.pdf', g:[['Rice',85,'cwt',21.50]], op:1122, int:21, rate:.07, crRate:0.065, cash:500, non:289, wIn:54, wCost:0, wNote:'4.5 ac-ft in season (+3 ac-ft winter flooding, not counted)', note:'Water (4.5 ac-ft) carries no per-unit charge in the operating budget — district water fees sit in overhead. Enter a water price if water savings have value.'},
+ {c:'Rice', l:'Sacramento Valley, 2021', u:F+'uploads/pub/2021/11/03/2021ricesacramentovalley.pdf', g:[['Rice',90,'cwt',21.50]], op:1466, int:4, rate:.04, crRate:0.0475, cash:595, non:158, wIn:0, wCost:0, note:'Operating total derived as total cost − overheads. The study does not state applied water — enter it to value water changes.'},
+ {c:'Sorghum', l:'Grain sorghum, San Joaquin Valley, 2016', u:F+'uploads/cs_public/cb/2c/cb2c22b4-04b7-45fb-a29b-7a5babe95776/2016sorghumgrainsjvfinaldraftmar23.pdf', g:[['Grain sorghum',4,'ton',179]], op:886, int:11, rate:.0425, crRate:0.0325, cash:544, non:727, wIn:24.5, wCost:408, note:'Non-cash overhead derived as total cost − cash costs.'},
+ {c:'Sorghum', l:'Sorghum silage, San Joaquin Valley, 2016', u:F+'uploads/cs_public/c2/a9/c2a9d0ea-f089-48a9-a9b2-64ec58355b46/2016sorghumsilagesjvfinaldraftmar23.pdf', g:[['Sorghum silage',20,'ton',42]], op:746.48, int:9.99, rate:.0425, crRate:0.0325, cash:330, non:29.44, wIn:24.5, wCost:408, note:'Non-cash overhead derived as total cost − cash costs.'},
+ {c:'Strawberries', l:'Conventional, Central Coast, 2024', u:F+'2024/04/04/2024Strawberry-FULL-FINAL-March2024.pdf', g:[['Strawberries',9000,'tray',11]], op:105809, int:4257, rate:.09, crRate:0.0825, cash:5946, non:939, wIn:27.5, wCost:825},
+ {c:'Strawberries', l:'Organic, Central Coast, 2024', u:F+'2024/05/10/2024OrgStrawberries-FINAL-May2024.pdf', g:[['Organic strawberries',7000,'tray',16]], op:95822, int:2458, rate:.09, crRate:0.0825, cash:6330, non:1294, wIn:27.5, wCost:825},
+ {c:'Sunflowers', l:'Hybrid seed, Sacramento Valley, 2018', u:F+'uploads/cs_public/18/2d/182dcc66-2b3e-4048-b639-b87d0a6456fd/2018sunflowerssacval-finaldraft_92618.pdf', g:[['Sunflower seed',1260,'lb',1.20]], op:1007, int:0, rate:.05, crRate:0.055, cash:350, non:234, wIn:22.16, wCost:166, note:'Interest on operating capital not separated in the extracted figures.'},
+ {c:'Tomatoes', l:'Processing, sub-surface drip, Sacramento Valley & N. Delta, 2023', u:F+'uploads/pub/2023/08/21/amended_82123_2023processtomatosacramentovalleysdifinal.pdf', g:[['Processing tomatoes',46,'ton',138]], op:4583, int:135, rate:.085, crRate:0.07, cash:343, non:323, wIn:27.5, wCost:275},
+ {c:'Tomatoes', l:'Processing, sub-surface drip, San Joaquin Valley South, 2018', u:F+'uploads/cs_public/2e/7a/2e7a8cf0-b7fd-4207-b945-7b4b8a82625c/17processtomatofresnosdi-final_draft.pdf', g:[['Processing tomatoes',58,'ton',70.50]], op:3345, int:45, rate:.05, crRate:0.055, cash:318, non:798, wIn:30.5, wCost:635},
+ {c:'Walnuts', l:'English walnuts, 2023', u:F+'2024/03/27/23WalnutsSacVal-Final-3.26.24.pdf', g:[['Walnuts',6000,'lb',0.50]], op:2913, int:52, rate:.085, crRate:0.07, cash:804, non:4323, wIn:36, wCost:450},
+ {c:'Wheat', l:'Sacramento Valley, 2016', u:F+'uploads/cs_public/dc/15/dc158210-055c-494c-9c2f-54083fbf0323/2016wheatsacvalleyfinaldraft122116.pdf', g:[['Wheat grain',3,'ton',200],['Straw',60,'bale',1.25]], y:[3,'ton grain'], op:534, int:10, rate:.0425, crRate:0.0375, cash:174, non:327, wIn:6, wCost:45},
+];
+
+const CATS = {"alfalfasvdraft10420.pdf":[["Fertilizer",74],["Custom",12],["Herbicide",65],["Insecticide",35],["Irrigation",350],["Miscellaneous",7]],"2020alfalfascottvalley-mixed_irrigation-1.pdf":[["Fertilizer",139],["Water",114],["Custom",46],["Rodenticide",6],["Insecticide",25],["Herbicide",24],["Adjuvant",16],["Labor",197],["Machinery",72]],"alfalfaorganiccadraft42021.pdf":[["Fertilizer",60],["Irrigation",350],["Insecticide",109],["Custom",295],["Labor",49],["Machinery",9]],"2024%20AlmondsSJVsouth.Final%20Draft.8.3.25.pdf":[["Herbicide",28],["Fungicide",234],["Insecticide",352],["Rodenticide",19],["Custom",835],["Irrigation",1932],["Fertilizer",453],["Labor",822],["Machinery",251]],"2024SacValleyAlmonds7.5.24.%20Final%20draft.pdf":[["Herbicide",135],["Fungicide",77],["Insecticide",301],["Rodenticide",21],["Custom",1462],["Irrigation",643],["Fertilizer",403],["Labor",501],["Machinery",115]],"AlmondsSJVNorth%20Final%20draft4.pdf":[["Herbicide",64],["Fungicide",66],["Insecticide",308],["Rodenticide",17],["Tree Aids",20],["Custom",1569],["Irrigation",710],["Fertilizer",321],["Machinery",92]],"2024%20AlmondsSPFinalDraft%202.pdf":[["Herbicide",64],["Fungicide",66],["Insecticide",308],["Rodenticide",17],["Tree Aids",20],["Custom",1359],["Irrigation",710],["Fertilizer",321],["Machinery",92]],"AlmondOrganicNSJV%20Final%20Publish_Update.pdf":[["Insecticide",432],["Fungicide",168],["Fertilizer",444],["Custom",1462],["Irrigation",700],["Seed",13],["Labor",488],["Machinery",106]],"2023applesccfullfinal-nov23.pdf":[["Fertilizer",143],["Insecticide",481],["Fungicide",160],["Herbicide",88],["Irrigation",169],["Custom",150],["Contract",2005],["Miscellaneous",134],["Labor",2358],["Machinery",180]],"2023organicapplesccfullfinal-nov23.pdf":[["Insecticide",451],["Fungicide",139],["Irrigation",169],["Custom",150],["Contract",1517],["Miscellaneous",163],["Labor",2367],["Machinery",171]],"2020avocadohighdensitysandiegocounty.pdf":[["Water",7201],["Fertilizer",397],["Insecticide",25],["Harvest",1750],["Herbicide",3],["Rodenticide",14],["Custom",421],["Labor",1863],["Machinery",27]],"blackeyebeans-sjv-south-2026.pdf":[["Custom",675],["Seed",27],["Herbicide",30],["Insecticide",23],["Water",625],["Assessment",15],["Labor",151],["Machinery",107]],"2023%20Baby%20Lima%20Final.pdf":[["Herbicide",83.12],["Insecticide",59.89],["Custom",457.5],["Fertilizer",60.5],["Seed",72.25],["Assessment",13.72],["Irrigation",249.9],["Labor",184.45],["Machinery",112.03]],"2018garbanzobeansacvalfinaldraft22018.pdf":[["Fertilizer",117],["Herbicide",39],["Seed",81],["Irrigation",122],["Custom",166],["Assessment",10],["Fungicide",18],["Labor",204],["Machinery",116]],"2018garbanzobeansjvsouthfinaldraft3118.pdf":[["Fertilizer",45],["Herbicide",39],["Seed",81],["Irrigation",219],["Custom",188],["Assessment",11],["Fungicide",18],["Labor",217],["Machinery",106]],"2016largelimabeansjvfinaldraftaug15.pdf":[["Fertilizer",87],["Herbicide",38],["Seed",165],["Irrigation",225],["Custom",350],["Assessment",8],["Insecticide",24],["Labor",115],["Machinery",76]],"2024Blackberries-CorrectedFINAL-APRIL2024.pdf":[["Fungicide",222],["Insecticide",126],["Fertilizer",418],["Water",728],["Custom",40477],["Harvest",9450],["Plants/Seed",14],["Labor",10292],["Machinery",695]],"2023-brocbunch14s-full-final.pdf":[["Fertilizer",303],["Custom",8060],["Seed",523],["Herbicide",80],["Insecticide",424],["Irrigation",435],["Labor",775],["Machinery",686]],"2023-broccrowncut-full-final.pdf":[["Fertilizer",303],["Custom",6513],["Seed",523],["Herbicide",80],["Insecticide",424],["Irrigation",435],["Labor",775],["Machinery",686]],"cherry2017_nsjv_final_draft4.pdf":[["Herbicide",80],["Insecticide",117],["Fungicide",163],["Fertilizer",397],["Custom",56],["Pollination",350],["Growth Regulator",26],["Adjuvant",48],["Tree",20],["Harvest",11781],["Assessment",41],["Water",150],["Contract",4],["Insecticide",137],["Labor",1264],["Machinery",146]],"15cornsacramentovalleyfinaldraftjuly20.pdf":[["Fertilizer",230],["Insecticide",19],["Herbicide",25],["Seed",67],["Custom",54],["Irrigation",168],["Land Rent",230],["Labor",173],["Machinery",131]],"corn-sjv-2015.pdf":[["Fertilizer",337],["Insecticide",29],["Herbicide",25],["Seed",65],["Custom",130],["Irrigation",330],["Labor",152],["Machinery",110]],"15ctsilagecornsanjoaquinvalleyfinaldraftjuly20.pdf":[["Fertilizer",236],["Insecticide",32],["Herbicide",25],["Seed",65],["Custom",547],["Irrigation",158],["Labor",141],["Machinery",9]],"16dovraisinsogtsjvfinaldraft111716.pdf":[["Fertilizer",54],["Insecticide",129],["Fungicide",88],["Herbicide",7],["Irrigation",195],["Custom",4],["Contract",37],["Rent",155],["Labor",1602],["Machinery",135]],"2016dovraisinsohtsjvfinaldraft111716.pdf":[["Fertilizer",54],["Insecticide",129],["Fungicide",88],["Herbicide",7],["Irrigation",195],["Custom",304],["Contract",37],["Labor",1506],["Machinery",95]],"2018tablegrapessjvflameseedlessfinaldraft.pdf":[["Herbicide",38],["Insecticide",192],["Fungicide",160],["Growth Regulator",90],["Fertilizer",68],["Water",441],["Custom",45],["Vine",20],["Vine Aids",404],["Harvest Aids",3055],["Assessment",313],["Rodenticide",15],["Contract",1989],["Labor",10641],["Machinery",209]],"2018tablegrapessjvsheegenefinaldraft.pdf":[["Herbicide",39],["Insecticide",192],["Fungicide",160],["Growth Regulator",14],["Fertilizer",68],["Water",441],["Custom",45],["Vine",44],["Vine Aids",404],["Harvest Aids",3055],["Assessment",313],["Rodenticide",15],["Contract",1989],["Labor",10630],["Machinery",201]],"2025-cabernet-paso-robles-east.pdf":[["Herbicide",106],["Insecticide",63],["Fungicide",80],["Fertilizer",17],["Soil Amendments",163],["Water",410],["Vineyard mgmt company (VMC) operations",2718],["Frost Protection",23],["Labor",1754]],"2025-cabernet-paso-robles-west.pdf":[["Insecticide",50],["Fungicide",150],["Fertilizer",84],["Soil Amendments",325],["Water",42],["Vineyard mgmt company (VMC) operations",4606],["Seed",50],["Vine",121],["Vine Aids",6],["Frost Protection",23],["Labor",5079]],"2021livermorecabfinaldraft_120221.pdf":[["Herbicide",103],["Insecticide",219],["Fungicide",117],["Fertilizer",13],["Water",202],["Irrigation System Aids",6],["Custom",386],["Vineyard mgmt company (VMC) operations",1368],["Vine Aids",15],["Assessment",29]],"2021_winegrape_highwire_lodi_22522.pdf":[["Herbicide",104],["Insecticide",142],["Fungicide",65],["Fertilizer",345],["Water",274],["Irrigation System Aids",6],["Custom",861],["Vine Aids",15],["Assessment",45],["Labor",574],["Machinery",137]],"2021_grapewinelodi_22522.pdf":[["Herbicide",104],["Insecticide",142],["Fungicide",65],["Fertilizer",345],["Water",274],["Irrigation System Aids",6],["Custom",651],["Vine Aids",15],["Assessment",45],["Labor",1462],["Machinery",135]],"2020napawinegrape.pdf":[["Herbicide",58],["Insecticide",97],["Fungicide",116],["Fertilizer",13],["Water",122],["Custom",78],["Vineyard mgmt company (VMC) operations",4215],["Seed",106],["Vine",202],["Vine Aids",8],["Frost Protection",216],["VMC Labor",3629]],"19winegrapessjvsouthcabernet.pdf":[["Herbicide",113],["Insecticide",187],["Fungicide",67],["Fertilizer",45],["Water",610],["Custom",828],["Assessment",12],["Vertebrate Pest Control",10],["Labor",484],["Machinery",135]],"19winegrapessjvsouthrubired.pdf":[["Herbicide",113],["Insecticide",187],["Fungicide",64],["Fertilizer",56],["Water",610],["Custom",823],["Vine Aids",15],["Assessment",15],["Vertebrate Pest Control",10],["Labor",479],["Machinery",123]],"19winegrapessjvsouthchardonnay.pdf":[["Herbicide",113],["Insecticide",187],["Fungicide",122],["Fertilizer",45],["Water",610],["Custom",758],["Assessment",13],["Vertebrate Pest Control",10],["Labor",532],["Machinery",155]],"19winegrapessjvssouthcolombard.pdf":[["Herbicide",113],["Insecticide",187],["Fungicide",67],["Fertilizer",56],["Water",610],["Custom",823],["Vine Aids",15],["Assessment",16],["Vertebrate Pest Control",10],["Labor",520],["Machinery",135]],"2020lemonsventuracounty.pdf":[["Frost Protection",546],["Fertilizer",159],["Herbicide",33],["Insecticide",443],["Vertebrate Pest Control",37],["Irrigation",750],["Custom",7786],["Assessment",112],["Labor",743],["Machinery",34]],"2023-iceberglettuce-full-final.pdf":[["Custom",10591],["Fertilizer",359],["Seed",315],["Herbicide",80],["Irrigation",606],["Insecticide",419],["Fungicide",431],["Labor",929],["Machinery",710]],"2023-romheartslettuce-full-final.pdf":[["Fertilizer",359],["Custom",10059],["Seed",473],["Herbicide",80],["Insecticide",419],["Fungicide",431],["Irrigation",582],["Labor",929],["Machinery",704]],"2025-olives-olive-oil-central-valley.pdf":[["Herbicide",74],["Fungicide",66],["Custom",631],["Irrigation",375],["Fertilizer",173],["Labor",288],["Machinery",92]],"2023tableolivestrad71723.pdf":[["Custom",4267],["Water",675],["Herbicide",121],["Insecticide",117],["Fertilizer",100],["Fungicide",125],["Thinning",112],["Labor",235],["Machinery",81]],"2023moderntableolivedraft11302023.pdf":[["Herbicide",121],["Fungicide",125],["Insecticide",117],["Custom",2525],["Irrigation",563],["Fertilizer",100],["Labor",360],["Machinery",115]],"2023Onions-Final.pdf":[["Herbicide",86.22],["Fungicide",138.9],["Insecticide",188.95],["Custom",338],["Fertilizer",618.8],["Seed",0.18],["Assessment",19.6],["Irrigation",412.68],["Labor",1283.53],["Machinery",463.37]],"2021orangessjvsouth.pdf":[["Herbicide",90],["Insecticide",109],["Miticide",166],["Fungicide",95],["Growth Regulator",28],["Fertilizer",70],["Soil Amendments",220],["Custom",449],["Contract",3695],["Irrigation",660],["Frost Protection",48],["Assessment",73],["Frost Protection",315],["Labor",482],["Machinery",32]],"2017peachsvsjv-lcling.pdf":[["Herbicide",57],["Insecticide",295],["Fungicide",182],["Fertilizer",70],["Water",210],["Custom",3914],["Tree Aids",25],["Assessment",58]],"23PearsSV-4.23.24.pdf":[["Herbicide",203],["Fungicide",443],["Rodenticide",27],["Fertilizer",283],["Irrigation",500],["Growth Regulator",52],["Lures/Confusion",110],["Custom",5022],["Tree",12],["Antibiotic",583],["Insecticide",363],["Tree Aids",1],["Rent",101],["Assessment",227],["Labor",854],["Machinery",333]],"2020pistachiosjvsouth.pdf":[["Herbicide",47],["Insecticide",195],["Fungicide",108],["Rodenticide",13],["Fertilizer",178],["Irrigation",1186],["Custom",880],["Assessment",84],["Aflatoxins",10],["Labor",356],["Machinery",95]],"2016plumssjvfinaldraft112316.pdf":[["Herbicide",45],["Insecticide",166],["Fungicide",20],["Fertilizer",95],["Water",733],["Custom",6926],["Contract",1440],["Labor",1809],["Machinery",67]],"23PotatoChipperKlamath-FINAL.pdf":[["Herbicide",104.37],["Fungicide",125.78],["Insecticide",51.96],["Fumigant",191.25],["Custom",493.1],["Fertilizer",312.2],["Seed",550],["Assessment",10.7],["Irrigation",246],["Labor",526.29],["Machinery",310.36]],"23PotatoFreshMktKlamath-Final.pdf":[["Herbicide",104.37],["Fungicide",125.78],["Insecticide",51.96],["Fumigant",191.25],["Custom",493.1],["Fertilizer",312.2],["Seed",550],["Assessment",10.7],["Irrigation",246],["Labor",526.29],["Machinery",310.36]],"2023.Prunes.SJV-Final-3.25.24.pdf":[["Herbicide",190],["Insecticide",41],["Fungicide",69],["Fertilizer",447],["Water",532],["Custom",3575],["Assessment",135],["Labor",249],["Machinery",64]],"2022prunessacvalley42023.pdf":[["Herbicide",98],["Insecticide",96],["Fungicide",122],["Rodenticide",17],["Fertilizer",449],["Pollination",30],["Water",508],["Custom",2919],["Assessment",151]],"23raspberry-fullfinal-dec2023.pdf":[["Herbicide",53],["Fungicide",104],["Insecticide",811],["Fertilizer",454],["Water",282],["Custom",49713],["Harvest",9215],["Labor",9945],["Machinery",521]],"20022ricedeltacontinuousrotation5923.pdf":[["Fertilizer",281],["Herbicide",136],["Insecticide",13],["Adjuvant",7],["Seed",63],["Custom",36],["Irrigation",0],["Contract",284],["Assessment",14],["Machinery",188]],"2021ricesacramentovalley.pdf":[["Fertilizer",158],["Herbicide",205],["Insecticide",10],["Fungicide",11],["Adjuvant",21],["Seed",57],["Custom",200],["Irrigation",150],["Contract",218],["Assessment",13],["Rent",32],["Labor",156],["Machinery",214]],"2016sorghumgrainsjvfinaldraftmar23.pdf":[["Fertilizer",118],["Insecticide",9],["Herbicide",36],["Seed",25],["Custom",167],["Irrigation",408],["Labor",67],["Machinery",45]],"2016sorghumsilagesjvfinaldraftmar23.pdf":[["Fertilizer",98],["Insecticide",9],["Herbicide",36],["Seed",32],["Custom",41],["Irrigation",408],["Labor",67],["Machinery",45]],"2024Strawberry-FULL-FINAL-March2024.pdf":[["Insecticide",429],["Fungicide",657],["Miticide",680],["Fertilizer",861],["Custom",48905],["Materials",19010],["Water",825],["Plants",3659],["Contract",17060],["Assessment",225],["Labor",8291],["Machinery",951]],"2024OrgStrawberries-FINAL-May2024.pdf":[["Insecticide",942],["Fungicide",98],["Fertilizer",4955],["Custom",35910],["Materials",15246],["Water",825],["Plants",4661],["Contract",16100],["Assessment",175],["Labor",13252],["Machinery",1200]],"amended_82123_2023processtomatosacramentovalleysdifinal.pdf":[["Fertilizer",349],["Custom",431],["Insecticide",56],["Fungicide",11],["Herbicide",100],["Vertebrate Pest Control",5],["Growth Regulator",1],["Contract",230],["Seed",299],["Transplant",331],["Irrigation",277],["Assessment",32],["Land Rent (share rent, per ton)",762],["Labor",921],["Machinery",645]],"17processtomatofresnosdi-final_draft.pdf":[["Fertilizer",396],["Custom",1129],["Insecticide",259],["Fungicide",62],["Herbicide",20],["Vertebrate Pest Control",1],["Growth Regulator",14],["Contract",80],["Irrigation",635],["Assessment",27]],"23WalnutsSacVal-Final-3.26.24.pdf":[["Herbicide",114],["Fungicide",36],["Insecticide",129],["Custom",1709],["Irrigation",450],["Fertilizer",194],["Assessment",60],["Labor",152],["Machinery",17]],"2016wheatsacvalleyfinaldraft122116.pdf":[["Fertilizer",84],["Custom",13],["Rent",63],["Irrigation",45],["Herbicide",18],["Fungicide",4],["Contract",35],["Seed",94],["Assessment",5],["Labor",84],["Machinery",80]]};
+
+</script>
+<script>
+function fmt$(v, {compact=false, cents=false}={}){
+  if(!Number.isFinite(v)) return 'n/a';
+  const neg = v < 0; const a = Math.abs(v);
+  let s;
+  if(compact){
+    if(a>=1e6) s = (a/1e6).toFixed(a>=10e6?1:2)+'M';
+    else if(a>=1e3) s = (a/1e3).toFixed(a>=10e3?0:1)+'k';
+    else s = a.toFixed(a<10 && a!==0 ? 1 : 0);
+  } else {
+    s = a.toLocaleString('en-US', {minimumFractionDigits:cents?2:0, maximumFractionDigits:cents?2:0});
+  }
+  return (neg?'−$':'$')+s;
+}
+function fmtPct(v, d=1){ return Number.isFinite(v) ? (v*100).toFixed(d)+'%' : 'n/a'; }
+function fmtNum(v, d=0){ return Number.isFinite(v) ? v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}) : 'n/a'; }
+function priceUnit(inp){ return inp.priceMode==='perHa' ? '/ha·season' : inp.priceMode==='perApp' ? '/'+inp.rateUnit : '/kg'; }
+function fmtPrice(v, inp){
+  if(!Number.isFinite(v)) return 'n/a';
+  const cents = inp.priceMode!=='perHa' && Math.abs(v) < 1000;
+  return fmt$(v,{cents}) + priceUnit(inp);
+}
+function fmtBC(v){ return Number.isFinite(v) ? v.toFixed(2)+' : 1' : '∞'; }
+
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs={}, children=[]){
+  const n = document.createElementNS(NS, tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  for(const c of children) n.appendChild(c);
+  return n;
+}
+function textEl(x,y,str,attrs={}){ const t = el('text', {x, y, ...attrs}); t.textContent = str; return t; }
+function niceStep(range, targetTicks=5){
+  if(!(range>0)) return 1;
+  const raw = range/targetTicks;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw/mag;
+  let step;
+  if(norm < 1.5) step = 1; else if(norm < 3) step = 2; else if(norm < 7) step = 5; else step = 10;
+  return step*mag;
+}
+let tooltipEl = null;
+function ensureTooltip(){
+  if(tooltipEl) return tooltipEl;
+  tooltipEl = document.createElement('div');
+  tooltipEl.style.cssText = `position:fixed; pointer-events:none; z-index:999; background:var(--ink); color:var(--paper);
+    font-size:12px; padding:7px 10px; border-radius:7px; box-shadow:var(--shadow); opacity:0; transition:opacity .08s ease;
+    font-family:"Public Sans",sans-serif; max-width:240px; line-height:1.45;`;
+  document.body.appendChild(tooltipEl);
+  return tooltipEl;
+}
+function showTip(evt, html){
+  const tip = ensureTooltip();
+  tip.innerHTML = html; tip.style.opacity = '1';
+  let x = evt.clientX + 14, y = evt.clientY + 14;
+  if(x + 250 > window.innerWidth) x = evt.clientX - 254;
+  tip.style.left = x+'px'; tip.style.top = y+'px';
+}
+function hideTip(){ if(tooltipEl) tooltipEl.style.opacity='0'; }
+function bindTip(node, html){ node.addEventListener('mousemove', e=>showTip(e, html)); node.addEventListener('mouseleave', hideTip); }
+
+/**
+ * Generic numeric-x line chart. series: [{name, ys, color, dash}].
+ * markers: [{x, label, color}] vertical dashed lines. band: {x0, x1, color}.
+ */
+function drawLines(container, {xs, series, xFmt=v=>v, yFmt=v=>fmt$(v,{compact:true}), tipY=v=>fmt$(v), xLabel='', markers=[], band=null, baseX=null, height=300, zeroLine=true}){
+  container.innerHTML='';
+  const W = container.clientWidth || 760, H = height;
+  const M = {top:22, right:24, bottom:46, left:74};
+  const iw = W-M.left-M.right, ih = H-M.top-M.bottom;
+  const svg = el('svg',{width:'100%',height:H,viewBox:`0 0 ${W} ${H}`,role:'img'});
+  const xMin = Math.min(...xs), xMax = Math.max(...xs);
+  const allY = series.flatMap(s=>s.ys).filter(Number.isFinite);
+  if(zeroLine) allY.push(0);
+  let minV = Math.min(...allY), maxV = Math.max(...allY);
+  if(minV===maxV){ minV -= 1; maxV += 1; }
+  const step = niceStep(maxV-minV, 5);
+  const yMin = Math.floor(minV/step)*step, yMax = Math.ceil(maxV/step)*step;
+  const xScale = v => M.left + iw*((v-xMin)/((xMax-xMin)||1));
+  const yScale = v => M.top + ih - ((v-yMin)/((yMax-yMin)||1))*ih;
+
+  if(band && Number.isFinite(band.x0) && Number.isFinite(band.x1) && band.x1>band.x0){
+    const a = Math.max(xMin, band.x0), b = Math.min(xMax, band.x1);
+    if(b>a) svg.appendChild(el('rect',{x:xScale(a), y:M.top, width:xScale(b)-xScale(a), height:ih, fill:band.color||'var(--good)', opacity:0.10}));
+  }
+  for(let gv=yMin; gv<=yMax+step*1e-6; gv+=step){
+    const gy = yScale(gv);
+    svg.appendChild(el('line',{x1:M.left,x2:W-M.right,y1:gy,y2:gy,stroke:'var(--line-soft)','stroke-width':1}));
+    svg.appendChild(textEl(M.left-8, gy+4, yFmt(gv), {'text-anchor':'end','font-size':10.5, fill:'var(--muted)', class:'num-lbl'}));
+  }
+  if(zeroLine && yMin<0 && yMax>0){
+    svg.appendChild(el('line',{x1:M.left,x2:W-M.right,y1:yScale(0),y2:yScale(0),stroke:'var(--muted)','stroke-width':1.3}));
+  }
+  const xStep = niceStep(xMax-xMin, Math.max(3, Math.min(8, Math.floor(iw/80))));
+  for(let tv=Math.ceil(xMin/xStep-1e-9)*xStep; tv<=xMax+xStep*1e-6; tv+=xStep){
+    const tx = xScale(tv);
+    svg.appendChild(el('line',{x1:tx,x2:tx,y1:M.top+ih,y2:M.top+ih+4,stroke:'var(--muted)'}));
+    svg.appendChild(textEl(tx, M.top+ih+17, xFmt(tv), {'text-anchor':'middle','font-size':10.5, fill:'var(--muted)'}));
+  }
+  svg.appendChild(el('line',{x1:M.left,x2:W-M.right,y1:M.top+ih,y2:M.top+ih,stroke:'var(--line)'}));
+
+  markers.forEach((mk,k)=>{
+    if(!Number.isFinite(mk.x) || mk.x<xMin || mk.x>xMax) return;
+    const mx = xScale(mk.x);
+    svg.appendChild(el('line',{x1:mx,x2:mx,y1:M.top,y2:M.top+ih,stroke:mk.color||'var(--accent)','stroke-width':1.4,'stroke-dasharray':'4 3'}));
+    const anchor = mx > W-150 ? 'end' : 'start';
+    svg.appendChild(textEl(mx + (anchor==='end'?-5:5), M.top+11+k*13, mk.label, {'font-size':10.5, fill:mk.color||'var(--accent-ink)', 'text-anchor':anchor, 'font-weight':600}));
+  });
+
+  series.forEach(s=>{
+    let d='', pen=false;
+    xs.forEach((x,i)=>{
+      const y = s.ys[i];
+      if(!Number.isFinite(y)){ pen=false; return; }
+      d += (pen?'L ':'M ')+xScale(x)+' '+yScale(y)+' '; pen=true;
+    });
+    svg.appendChild(el('path',{d, fill:'none', stroke:s.color, 'stroke-width':2.3, 'stroke-linejoin':'round', 'stroke-dasharray':s.dash||''}));
+  });
+  // hover columns
+  xs.forEach((x,i)=>{
+    const cx = xScale(x);
+    series.forEach(s=>{
+      const y = s.ys[i]; if(!Number.isFinite(y)) return;
+      const isBase = baseX!=null && Math.abs(x-baseX) < 1e-9;
+      svg.appendChild(el('circle',{cx, cy:yScale(y), r:isBase?5:3, fill:isBase?'var(--accent)':'var(--surface)', stroke:s.color, 'stroke-width':1.8}));
+    });
+    const hw = (iw/Math.max(xs.length-1,1))/2;
+    const hit = el('rect',{x:cx-hw, y:M.top, width:hw*2, height:ih, fill:'transparent'});
+    bindTip(hit, `<b>${xFmt(x)}</b>${baseX!=null && Math.abs(x-baseX)<1e-9?' (base case)':''}<br>` + series.map(s=>`${s.name}: ${tipY(s.ys[i], s)}`).join('<br>'));
+    svg.appendChild(hit);
+  });
+  svg.appendChild(textEl(M.left+iw/2, H-6, xLabel, {'text-anchor':'middle','font-size':11,fill:'var(--ink-soft)','font-weight':600}));
+  container.appendChild(svg);
+}
+
+/** Waterfall: steps [{label, v}] then a total bar. */
+function drawWaterfall(container, steps, totalLabel='AEV'){
+  container.innerHTML='';
+  const W = container.clientWidth || 600, H = 300;
+  const M = {top:22, right:14, bottom:58, left:64};
+  const iw = W-M.left-M.right, ih = H-M.top-M.bottom;
+  const svg = el('svg',{width:'100%',height:H,viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'Annual equivalent value waterfall'});
+  let run = 0; const bars = [];
+  steps.forEach(s=>{ bars.push({label:s.label, a:run, b:run+s.v, v:s.v}); run += s.v; });
+  bars.push({label:totalLabel, a:0, b:run, v:run, total:true});
+  const vals = bars.flatMap(b=>[b.a,b.b]).concat(0);
+  const minV = Math.min(...vals), maxV = Math.max(...vals);
+  const step = niceStep((maxV-minV)||1, 5);
+  const yMin = Math.floor(minV/step)*step, yMax = Math.ceil(maxV/step)*step;
+  const yScale = v => M.top + ih - ((v-yMin)/((yMax-yMin)||1))*ih;
+  for(let gv=yMin; gv<=yMax+step*1e-6; gv+=step){
+    const gy = yScale(gv);
+    svg.appendChild(el('line',{x1:M.left,x2:W-M.right,y1:gy,y2:gy,stroke:'var(--line-soft)'}));
+    svg.appendChild(textEl(M.left-8, gy+4, fmt$(gv,{compact:true}), {'text-anchor':'end','font-size':10.5,fill:'var(--muted)',class:'num-lbl'}));
+  }
+  svg.appendChild(el('line',{x1:M.left,x2:W-M.right,y1:yScale(0),y2:yScale(0),stroke:'var(--muted)','stroke-width':1.3}));
+  const slot = iw/bars.length, bw = Math.min(slot*0.62, 70);
+  bars.forEach((b,i)=>{
+    const cx = M.left + slot*(i+0.5);
+    const y1 = yScale(Math.max(b.a,b.b)), y2 = yScale(Math.min(b.a,b.b));
+    const color = b.total ? (b.v>=0?'var(--good)':'var(--critical)') : (b.v>=0?'var(--div-pos)':'var(--div-neg)');
+    const r = el('rect',{x:cx-bw/2, y:y1, width:bw, height:Math.max(y2-y1,1.5), rx:3, fill:color, opacity:b.total?1:0.88});
+    bindTip(r, `<b>${b.label}</b><br>${fmt$(b.v)} /ha·yr`);
+    svg.appendChild(r);
+    if(i < bars.length-1){
+      const nx = M.left + slot*(i+1.5);
+      svg.appendChild(el('line',{x1:cx+bw/2, x2:nx-bw/2, y1:yScale(b.b), y2:yScale(b.b), stroke:'var(--muted)', 'stroke-dasharray':'2 2'}));
+    }
+    svg.appendChild(textEl(cx, y1-5, fmt$(b.v,{compact:true}), {'text-anchor':'middle','font-size':10.5,fill:'var(--ink-soft)',class:'num-lbl','font-weight':b.total?700:500}));
+    // wrapped label
+    const words = b.label.split(' '); const lines=[''];
+    words.forEach(w=>{ if((lines[lines.length-1]+' '+w).trim().length > Math.max(8, Math.floor(slot/6.2))) lines.push(w); else lines[lines.length-1] = (lines[lines.length-1]+' '+w).trim(); });
+    lines.slice(0,3).forEach((ln,k)=> svg.appendChild(textEl(cx, M.top+ih+15+k*12, ln, {'text-anchor':'middle','font-size':10.2,fill:b.total?'var(--ink)':'var(--muted)','font-weight':b.total?700:400})));
+  });
+  container.appendChild(svg);
+}
+
+/** Heatmap of AEV over a 2-D grid. z[yi][xi]. */
+function drawHeatmap(container, {xs, ys, z, xFmt, yFmt, xLabel, yLabel, baseX, baseY}){
+  container.innerHTML='';
+  const W = container.clientWidth || 760;
+  const M = {top:10, right:16, bottom:46, left:92};
+  const iw = W-M.left-M.right;
+  const cw = iw/xs.length, ch = Math.max(24, Math.min(34, cw*0.6));
+  const H = M.top + M.bottom + ch*ys.length;
+  const svg = el('svg',{width:'100%',height:H,viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':'AEV heatmap'});
+  const maxAbs = Math.max(...z.flat().map(v=>Math.abs(v)).filter(Number.isFinite), 1);
+  const nearest = (arr,v)=> arr.reduce((bi,a,i)=> Math.abs(a-v)<Math.abs(arr[bi]-v)?i:bi, 0);
+  const bxi = nearest(xs, baseX), byi = nearest(ys, baseY);
+  ys.forEach((yv, yi)=>{
+    const ry = M.top + (ys.length-1-yi)*ch;
+    svg.appendChild(textEl(M.left-8, ry+ch/2+4, yFmt(yv), {'text-anchor':'end','font-size':10.5,fill:'var(--muted)'}));
+    xs.forEach((xv, xi)=>{
+      const v = z[yi][xi];
+      const t = Math.min(1, Math.abs(v)/maxAbs);
+      const rx = M.left + xi*cw;
+      svg.appendChild(el('rect',{x:rx, y:ry, width:cw, height:ch, fill:'var(--div-mid)'}));
+      const cell = el('rect',{x:rx+0.5, y:ry+0.5, width:cw-1, height:ch-1, fill: v>=0?'var(--div-pos)':'var(--div-neg)', opacity:(0.12+0.85*t).toFixed(3)});
+      bindTip(cell, `<b>${xLabel}: ${xFmt(xv)}</b><br>${yLabel}: ${yFmt(yv)}<br>AEV: ${fmt$(v)} /ha·yr`);
+      svg.appendChild(cell);
+      if(cw >= 44) svg.appendChild(textEl(rx+cw/2, ry+ch/2+4, fmt$(v,{compact:true}), {'text-anchor':'middle','font-size':10, fill: t>0.55?'#fff':'var(--ink)', class:'num-lbl', 'pointer-events':'none'}));
+      if(xi===bxi && yi===byi) svg.appendChild(el('rect',{x:rx+1.5,y:ry+1.5,width:cw-3,height:ch-3,fill:'none',stroke:'var(--accent)','stroke-width':2.5,rx:3,'pointer-events':'none'}));
+    });
+  });
+  const every = Math.ceil(xs.length / Math.max(1, Math.floor(iw/58)));
+  xs.forEach((xv,xi)=>{ if(xi%every===0 || xi===xs.length-1) svg.appendChild(textEl(M.left+xi*cw+cw/2, M.top+ch*ys.length+15, xFmt(xv), {'text-anchor':'middle','font-size':10.5,fill:'var(--muted)'})); });
+  svg.appendChild(textEl(M.left+iw/2, H-6, xLabel, {'text-anchor':'middle','font-size':11,fill:'var(--ink-soft)','font-weight':600}));
+  const yl = textEl(14, M.top+ch*ys.length/2, yLabel, {'text-anchor':'middle','font-size':11,fill:'var(--ink-soft)','font-weight':600, transform:`rotate(-90 14 ${M.top+ch*ys.length/2})`});
+  svg.appendChild(yl);
+  container.appendChild(svg);
+}
+
+
+function h(tag, attrs={}, html=''){
+  const n = document.createElement(tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  n.innerHTML = html;
+  return n;
+}
+function numField(container, {label, get, set, min, max, step=1, suffix='', isPct=false, digits=null, onInput=null}){
+  const wrap = h('div',{class:'field'});
+  const showVal = ()=> isPct ? fmtPct(get(), digits==null?1:digits) : (digits!=null? fmtNum(get(),digits) : fmtNum(get(),0));
+  const lab = h('label',{}, `<span>${label}</span><span class="val">${showVal()}</span>`);
+  wrap.appendChild(lab);
+  const uw = h('div',{class:'unit-input'});
+  const inp = document.createElement('input');
+  inp.type='number'; inp.step = step;
+  if(min!=null) inp.min=min; if(max!=null) inp.max=max;
+  inp.value = isPct ? +(get()*100).toFixed(4) : +(+get()).toFixed(digits!=null ? Math.max(digits,2) : 4);
+  uw.appendChild(inp);
+  if(suffix){ uw.appendChild(h('span',{class:'suffix'},suffix)); }
+  wrap.appendChild(uw);
+  inp.addEventListener('input', ()=>{
+    let v = parseFloat(inp.value); if(isNaN(v)) return;
+    if(isPct) v = v/100;
+    set(v);
+    lab.querySelector('.val').textContent = showVal();
+    onInput && onInput();
+    scheduleRender();
+  });
+  container.appendChild(wrap);
+  return inp;
+}
+function selectField(container, {label, options, get, set, onChange}){
+  const wrap = h('div',{class:'field'});
+  wrap.appendChild(h('label',{},`<span>${label}</span>`));
+  const sel = document.createElement('select');
+  options.forEach(o=>{
+    const opt = document.createElement('option');
+    opt.value=o.value; opt.textContent=o.label;
+    if(o.value===get()) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', ()=>{ set(sel.value); onChange&&onChange(); scheduleRender(); });
+  wrap.appendChild(sel);
+  container.appendChild(wrap);
+  return sel;
+}
+function toggleField(container, {label, get, set}){
+  const lab = h('label',{class:'toggle-row'});
+  const cb = document.createElement('input'); cb.type='checkbox'; cb.checked = !!get();
+  lab.appendChild(cb); lab.appendChild(h('span',{},label));
+  cb.addEventListener('change', ()=>{ set(cb.checked); renderSidebar(); scheduleRender(); });
+  container.appendChild(lab);
+}
+
+
+let _downloadsCap;
+async function getDownloadsCap(){
+  if(_downloadsCap !== undefined) return _downloadsCap;
+  try{
+    _downloadsCap = (window.claude && typeof window.claude.use === 'function') ? await window.claude.use('downloads') : null;
+  }catch(e){ _downloadsCap = null; }
+  return _downloadsCap;
+}
+function ioStatusMsg(msg, kind){
+  const e = document.getElementById('ioStatus'); if(!e) return;
+  e.textContent = msg; e.className = 'io-status' + (kind ? ' '+kind : '');
+  if(msg) setTimeout(()=>{ if(e.textContent===msg){ e.textContent=''; e.className='io-status'; } }, 5000);
+}
+async function saveFile(filename, dataStr, mimeType){
+  const cap = await getDownloadsCap();
+  if(cap){
+    try{ await cap.save({filename, data: dataStr}); ioStatusMsg('Saved '+filename, 'ok'); return; }
+    catch(err){ if(err && err.code === 'declined') return; }
+  }
+  try{
+    const blob = new Blob([dataStr], {type: mimeType || 'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+    ioStatusMsg('Saved '+filename, 'ok');
+  }catch(err){ ioStatusMsg('Could not save file — try again.', 'err'); }
+}
+function numOr(v, fallback){ return (typeof v === 'number' && isFinite(v)) ? v : fallback; }
+
+
+function csvEscape(v){ const s = String(v); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }
+
+function statCard(lbl, value, {foot='', color=null, pill=null}={}){
+  const c = h('div',{class:'stat'});
+  if(color) c.style.setProperty('--stat-color', color);
+  c.innerHTML = `<div class="lbl">${lbl}</div><div class="v">${value}</div>${foot?`<div class="foot">${foot}</div>`:''}`;
+  if(pill) c.innerHTML += `<div class="pill ${pill.good?'good':'bad'}">${pill.text}</div>`;
+  return c;
+}
+function kvList(rows){ return rows.map(([k,v])=>`<div class="kv"><span>${k}</span><span>${v}</span></div>`).join(''); }
+
+
+</script>
+<script>
+/* ============================== CONSTANTS & HELPERS ============================== */
+const AC_PER_HA=2.47105, MM_PER_IN=25.4;
+const TAGS={fixed:'Fixed', yield:'∝ Yield', water:'∝ Irrigation'};
+const TAG_FROM_TEXT=t=>{ t=(t||'').toLowerCase(); return t.includes('yield')?'yield':(t.includes('irrig')||t.includes('water'))?'water':'fixed'; };
+const GROUPS={op:'Operating costs', cash:'Cash overhead', noncash:'Non-cash overhead (capital recovery)'};
+const ALT_COLORS=['var(--s1)','var(--s3)','var(--s4)'], CTL_COLOR='var(--s7)';
+const YIELD_CATS=/^(Assessments?|Harvest|Harvest Aids|Land Rent \(share)/i, WATER_CATS=/^(Irrigation|Water)$/i;
+const $=id=>document.getElementById(id);
+const INFO=[
+ [/assess/i, `<b>Assessment</b><br>Mandatory fees on the crop sold, funding commodity boards, research, grading/inspection and state pest programs. Tomato study: PTAB $0.29/t, CTGA $0.25/t, CTRI $0.12/t, CDFA curly-top program $0.04/t.<br><br><b>Why ∝ Yield:</b> charged per unit sold, so more yield means more fees (+5% yield → +5% assessment). Set to Fixed if yours is charged per acre.`],
+ [/rent/i, `<b>Land rent</b><br><b>Share rent</b> (tomato study): the landowner receives a share of the crop — 12% × $138/t = $16.56 per ton. More yield means more rent, so the line is ∝ Yield.<br><br><b>Cash rent</b> (most other studies): a fixed $/acre that doesn't change with yield — keep it Fixed.`]];
+function infoBtn(name){ const m=INFO.find(([re])=>re.test(name||'')); if(!m) return null; const b=document.createElement('span'); b.className='info'; b.textContent='i'; bindTip(b,m[1]); b.addEventListener('click',e=>{ showTip(e,m[1]); e.stopPropagation(); }); return b; }
+const money=(v,c)=>Number.isFinite(v)?fmt$(v,{cents:c}):'—';
+const perL=v=>Number.isFinite(v)?(Math.abs(v)<100?fmt$(v,{cents:true}):fmt$(v))+'/L':'—';
+const pct=(v,d=0)=>Number.isFinite(v)?(v>10?'>1000%':fmtPct(v,d)):'—';
+function toast(m){ const t=$('toast'); t.textContent=m; t.style.opacity=1; clearTimeout(toast._t); toast._t=setTimeout(()=>t.style.opacity=0,2200); }
+let _id=0; const nid=()=>'r'+(++_id);
+const csvRow=a=>a.map(v=>typeof v==='number'?(Number.isFinite(v)?+v.toFixed(4):''):csvEscape(v==null?'':v)).join(',');
+function parseCSV(text){
+  const rows=[]; let row=[], cell='', q=false;
+  for(let i=0;i<text.length;i++){ const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){cell+='"'; i++;} else q=false; } else cell+=c; }
+    else if(c==='"') q=true; else if(c===','){ row.push(cell); cell=''; } else if(c==='\n'||c==='\r'){ if(c==='\r'&&text[i+1]==='\n') i++; row.push(cell); rows.push(row); row=[]; cell=''; } else cell+=c; }
+  if(cell!==''||row.length){ row.push(cell); rows.push(row); }
+  return rows;
+}
+function pickFile(accept, cb){ const f=$('fileIn'); f.accept=accept; f.value=''; f.onchange=()=>{ const file=f.files[0]; if(!file) return; const r=new FileReader(); r.onload=()=>cb(r.result,file.name); r.readAsText(file); }; f.click(); }
+const store={ get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }, set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } } };
+
+/* ============================== STUDY DATA ============================== */
+const studyKey=s=>s.u.split('/').pop();
+const studyYield=s=> s.y?{qty:s.y[0],unit:s.y[1]}:(()=>{ const q=s.g.filter(x=>x[1]!=null); return q.length?{qty:q[0][1],unit:q[0][2]}:{qty:null,unit:''}; })();
+const studyGross=s=>s.g.reduce((a,[n,q,u,p])=>a+(q==null?p:q*p),0);
+function studyCats(s){
+  const cats=(CATS[studyKey(s)]||[]).reduce((m,[n,v])=>{ if(v>0) m.set(n,(m.get(n)||0)+v); return m; }, new Map());
+  const rows=[]; let sum=0;
+  if(cats.size){ for(const [n,v] of cats){ sum+=v; rows.push({group:'op',name:n,value:v,tag:WATER_CATS.test(n)?'water':(YIELD_CATS.test(n)?'yield':'fixed')}); } }
+  else if(s.wCost>0){ rows.push({group:'op',name:'Irrigation water',value:s.wCost,tag:'water'}); sum+=s.wCost; }
+  const res=s.op-s.int-sum;
+  if(Math.abs(res)>=3) rows.push({group:'op',name:cats.size?'Labor, machinery & other':'Other operating costs',value:res,tag:'fixed'});
+  if(!rows.some(r=>r.tag==='water')) rows.push({group:'op',name:'Irrigation water',value:0,tag:'water'});
+  rows.push({group:'op',name:'Interest on operating capital',value:s.int,tag:'fixed'});
+  rows.push({group:'cash',name:'Cash overhead',value:s.cash,tag:'fixed'});
+  rows.push({group:'noncash',name:'Non-cash overhead',value:s.non,tag:'fixed'});
+  return rows;
+}
+function controlFromStudy(idx){
+  const s=STUDIES[idx];
+  return { studyIdx:idx, title:s.c+' — '+s.l, url:s.u,
+    benefits:s.g.map(([name,qty,unit,price])=>({id:nid(), name, qty, unit:unit||'', price:qty==null?null:price, value:qty==null?price:null, tag:'yield'})),
+    costs:studyCats(s).map(r=>({id:nid(),...r})),
+    waterIn:s.wIn||0, studyRate:s.rate, crRate:s.crRate, note:[s.yNote,s.note].filter(Boolean).join(' ') };
+}
+const bVal=r=>r.qty==null?(+r.value||0):(+r.qty||0)*(+r.price||0);
+
+/* ============================== STATE ============================== */
+
+let control=controlFromStudy(STUDIES.findIndex(s=>/Processing, sub-surface drip, Sacramento/.test(s.l)));
+const newAlt=n=>({id:nid(), name:'Alternative '+n, yieldPct:5, irrPct:-10, mode:'acre', amount:6, ppm:100, share:100, price:15, ov:{}});
+let alts=[newAlt(1)];
+
+/* ============================== ENGINE (per acre) ============================== */
+function litres(a){ if(a.mode==='acre') return +a.amount||0; const mm=control.waterIn*(1+a.irrPct/100)*MM_PER_IN*((a.share??100)/100); return (+a.ppm||0)*mm*10/AC_PER_HA/1000; }
+function column(a){
+  const y=a?a.yieldPct/100:0, w=a?a.irrPct/100:0;
+  const v={}; let B=0, C=0;
+  control.benefits.forEach(r=>{ let x=bVal(r)*(r.tag==='yield'?1+y:1); if(a&&a.ov[r.id]!=null) x=a.ov[r.id]; v[r.id]=x; B+=x; });
+  control.costs.forEach(r=>{ const b=+r.value||0; let x=b*(r.tag==='yield'?1+y:r.tag==='water'?1+w:1); if(a&&a.ov[r.id]!=null) x=a.ov[r.id]; v[r.id]=x; C+=x; });
+  const q=a?litres(a):0; let T=a?q*a.price:0; if(a&&a.ov.trt!=null) T=a.ov.trt;
+  return {v,B,C,T,q,aev:B-C-T};
+}
+function econ(a){
+  const c0=column(null), c=column(a);
+  const D=(c.B-c0.B)-(c.C-c0.C);
+  return {c0, c, D, dAEV:c.aev-c0.aev, breakEven:c.q>0?D/c.q:NaN, roi:c.T>0?(D-c.T)/c.T:NaN, bc:c.T>0?D/c.T:NaN};
+}
+
+/* ============================== PAGE 1 · CONTROL ============================== */
+function renderControl(){
+  const P=$('p-control'); P.innerHTML='';
+  const saved=store.get('bioinput.saved',[]);
+  const c1=h('div',{class:'card'});
+  c1.innerHTML=`<div class="studybar">
+    <div><div class="fl">UC Davis cost &amp; return study</div><select class="sel" id="stSel" style="width:100%"></select></div>
+    <div><div class="fl">Saved studies</div><select class="sel" id="svSel" style="width:100%"><option value="">${saved.length?'Load a saved study…':'None saved yet'}</option>${saved.map((x,i)=>`<option value="${i}">${x.name}</option>`).join('')}</select></div>
+    <div class="toolbar"><button class="btn pri" id="bSave">Save</button><button class="btn" id="bImp">Import</button><button class="btn" id="bExpC">Export CSV</button><button class="btn" id="bExpJ">Export JSON</button></div></div>
+    <div class="chips" id="chips"></div>${control.note?`<div class="note">⚠ ${control.note}</div>`:''}`;
+  P.appendChild(c1);
+  const sel=c1.querySelector('#stSel'), groups={};
+  STUDIES.forEach((s,i)=>(groups[s.c]=groups[s.c]||[]).push(i));
+  Object.keys(groups).sort().forEach(g=>{ const og=document.createElement('optgroup'); og.label=g; groups[g].forEach(i=>{ const o=document.createElement('option'); o.value=i; o.textContent=STUDIES[i].l; if(i===control.studyIdx) o.selected=true; og.appendChild(o); }); sel.appendChild(og); });
+  sel.onchange=()=>{ control=controlFromStudy(+sel.value); alts.forEach(a=>a.ov={}); renderControl(); };
+  c1.querySelector('#svSel').onchange=e=>{ const x=saved[+e.target.value]; if(!x) return; control=JSON.parse(JSON.stringify(x.control)); reId(); alts.forEach(a=>a.ov={}); renderControl(); toast('Loaded “'+x.name+'”'); };
+  c1.querySelector('#bSave').onclick=()=>{ const name=prompt('Name for this study', control.title); if(!name) return; const list=store.get('bioinput.saved',[]).filter(x=>x.name!==name); list.push({name, savedAt:new Date().toISOString(), control}); toast(store.set('bioinput.saved',list)?'Saved':'Could not save in this browser — use Export'); renderControl(); };
+  c1.querySelector('#bExpC').onclick=exportControlCsv;
+  c1.querySelector('#bExpJ').onclick=()=>saveFile('control-study.json', JSON.stringify({_type:'bioinput-control',control},null,2),'application/json');
+  c1.querySelector('#bImp').onclick=()=>pickFile('.csv,.json,text/csv,application/json',(txt,name)=>{ try{ importControl(txt,name); alts.forEach(a=>a.ov={}); renderControl(); toast('Imported '+name); }catch(e){ toast('Import failed: '+e.message); } });
+
+  const s=STUDIES[control.studyIdx]||{}, y=s.g?studyYield(s):{qty:null,unit:''};
+  const chips=c1.querySelector('#chips');
+  const chip=(k,v,sub)=>{ const d=h('div',{class:'chip'},`<div class="k">${k}</div><div class="v">${v}</div><div class="s">${sub||''}</div>`); chips.appendChild(d); return d; };
+  chip('Yield', y.qty!=null?fmtNum(y.qty,y.qty<100?2:0):'—', (y.unit||'')+' / acre');
+  const wch=h('div',{class:'chip'},`<div class="k">Irrigation water</div>`); const wi=document.createElement('input'); wi.type='number'; wi.step='any'; wi.value=+(+control.waterIn).toFixed(2); const ws=h('div',{class:'s'}); wch.append(wi,ws); chips.appendChild(wch);
+  const updW=()=>{ ws.textContent=`in/season · ${fmtNum(control.waterIn*MM_PER_IN,0)} mm`; }; updW();
+  wi.oninput=()=>{ control.waterIn=Math.max(0,parseFloat(wi.value)||0); updW(); };
+  const net=chip('Net return','','$/acre · year');
+  if(control.url) chip('Source',`<a href="${control.url}" target="_blank" rel="noopener" style="font-size:15px">Open PDF ↗</a>`,'UC Davis ARE / UCCE');
+
+  const c2=h('div',{class:'card'}); c2.innerHTML='<h3>Annual benefits &amp; costs <span class="sp"></span><button class="btn ghost" id="bReset">↺ Reset to study</button></h3>';
+  const tbl=document.createElement('table'); tbl.className='t';
+  tbl.innerHTML='<thead><tr><th class="l">Item</th><th>Quantity /ac</th><th class="l">Unit</th><th>Price $/unit</th><th>$/acre</th><th>$/ha</th><th>Share</th><th class="l">Responds to</th><th></th></tr></thead>';
+  const tb=document.createElement('tbody'); tbl.appendChild(tb);
+  const num=(val,on)=>{ const i=document.createElement('input'); i.type='number'; i.step='any'; i.value=val==null?'':+(+val).toFixed(4); i.oninput=()=>{ on(parseFloat(i.value)||0); upd(); }; return i; };
+  const txt=(val,on)=>{ const i=document.createElement('input'); i.className='txt'; i.value=val||''; i.oninput=()=>on(i.value); return i; };
+  const tagSel=(r,opts)=>{ const s=document.createElement('select'); opts.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=TAGS[t]; if(r.tag===t) o.selected=true; s.appendChild(o); }); s.onchange=()=>r.tag=s.value; return s; };
+  const tr=cells=>{ const t=document.createElement('tr'); cells.forEach(([el,cls])=>{ const td=document.createElement('td'); if(cls) td.className=cls; if(el instanceof Node) td.appendChild(el); else td.innerHTML=el??''; t.appendChild(td); }); tb.appendChild(t); return t; };
+  const grp=(label,id)=>{ const t=document.createElement('tr'); t.className='grp'; t.innerHTML=`<td class="l" colspan="4">${label}</td><td id="${id}"></td><td></td><td></td><td></td><td></td>`; tb.appendChild(t); };
+  const del=(arr,r)=>{ const b=h('button',{class:'x',title:'Remove'},'×'); b.onclick=()=>{ arr.splice(arr.indexOf(r),1); renderControl(); }; return b; };
+  const addRow=(label,fn)=>{ const t=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=9; td.className='l'; const b=h('button',{class:'add'},'+ '+label); b.onclick=()=>{ fn(); renderControl(); }; td.appendChild(b); t.appendChild(td); tb.appendChild(t); };
+
+  grp('Benefits — gross revenue','g_b');
+  control.benefits.forEach(r=>{
+    if(r.qty==null) tr([[txt(r.name,v=>r.name=v),'l'],['—'],[''],['—'],[num(r.value,v=>r.value=v)],['','ro'],['','ro'],[tagSel(r,['yield','fixed']),'l'],[del(control.benefits,r)]]).dataset.id=r.id;
+    else tr([[txt(r.name,v=>r.name=v),'l'],[num(r.qty,v=>r.qty=v)],[txt(r.unit,v=>r.unit=v),'l'],[num(r.price,v=>r.price=v)],['','ro'],['','ro'],['','ro'],[tagSel(r,['yield','fixed']),'l'],[del(control.benefits,r)]]).dataset.id=r.id;
+  });
+  addRow('Revenue line',()=>control.benefits.push({id:nid(),name:'New product',qty:0,unit:'unit',price:0,value:null,tag:'yield'}));
+  Object.entries(GROUPS).forEach(([g,label])=>{
+    grp(label,'g_'+g);
+    control.costs.filter(r=>r.group===g).forEach(r=>{
+      const nw=h('div',{class:'nmw'}); nw.appendChild(txt(r.name,v=>r.name=v)); const ib=infoBtn(r.name); if(ib) nw.appendChild(ib);
+      tr([[nw,'l'],[''],[''],[''],[num(r.value,v=>r.value=v)],['','ro'],['','ro'],[tagSel(r,['fixed','yield','water']),'l'],[del(control.costs,r)]]).dataset.id=r.id;
+    });
+    addRow(label.replace(/ \(.*/,'').toLowerCase()+' line',()=>control.costs.push({id:nid(),group:g,name:'New cost',value:0,tag:'fixed'}));
+  });
+  const tf=document.createElement('tfoot'); tf.innerHTML='<tr class="tot"><td class="l">Total benefits</td><td></td><td></td><td></td><td id="tB"></td><td id="tBh"></td><td></td><td></td><td></td></tr><tr class="tot"><td class="l">Total costs</td><td></td><td></td><td></td><td id="tC"></td><td id="tCh"></td><td></td><td></td><td></td></tr><tr class="aev"><td class="l">Net return above total cost</td><td></td><td></td><td></td><td id="tN"></td><td id="tNh"></td><td></td><td></td><td></td></tr>';
+  tbl.appendChild(tf);
+  const wrap=h('div',{class:'table-wrap'}); wrap.appendChild(tbl); c2.appendChild(wrap); P.appendChild(c2);
+  c2.querySelector('#bReset').onclick=()=>{ control=controlFromStudy(control.studyIdx); alts.forEach(a=>a.ov={}); renderControl(); };
+
+  function upd(){
+    let B=0,C=0; control.benefits.forEach(r=>B+=bVal(r)); control.costs.forEach(r=>C+=(+r.value||0));
+    tb.querySelectorAll('tr[data-id]').forEach(t=>{ const id=t.dataset.id; const r=control.benefits.find(x=>x.id===id)||control.costs.find(x=>x.id===id); if(!r) return;
+      const v=control.benefits.includes(r)?bVal(r):(+r.value||0); const tds=t.children;
+      if(r.qty!=null||!control.benefits.includes(r)){ if(control.benefits.includes(r)) tds[4].textContent=money(v); }
+      tds[5].textContent=money(v*AC_PER_HA); tds[6].textContent=control.benefits.includes(r)?(B?fmtPct(v/B,1):''):(C?fmtPct(v/C,1):''); });
+    $('g_b').textContent=money(B);
+    Object.keys(GROUPS).forEach(g=>$('g_'+g).textContent=money(control.costs.filter(r=>r.group===g).reduce((a,r)=>a+(+r.value||0),0)));
+    $('tB').textContent=money(B); $('tBh').textContent=money(B*AC_PER_HA); $('tC').textContent=money(C); $('tCh').textContent=money(C*AC_PER_HA);
+    $('tN').textContent=money(B-C); $('tNh').textContent=money((B-C)*AC_PER_HA); $('tN').className=(B-C)<0?'neg':'pos';
+    net.querySelector('.v').innerHTML=`<span class="${(B-C)<0?'neg':'pos'}">${money(B-C)}</span>`;
+  }
+  upd();
+}
+function reId(){ control.benefits.forEach(r=>r.id=nid()); control.costs.forEach(r=>r.id=nid()); }
+function exportControlCsv(){
+  const L=[csvRow(['Study',control.title]),csvRow(['Source',control.url||'']),csvRow(['Irrigation water (in)',control.waterIn]),csvRow(['Interest on operating capital',control.studyRate]),csvRow(['Capital recovery rate',control.crRate]),'',
+    csvRow(['Type','Group','Item','Quantity per acre','Unit','Price per unit','$/acre','$/ha','Responds to'])];
+  control.benefits.forEach(r=>L.push(csvRow(['Benefit','Gross revenue',r.name,r.qty,r.unit,r.price,bVal(r),bVal(r)*AC_PER_HA,TAGS[r.tag]])));
+  control.costs.forEach(r=>L.push(csvRow(['Cost',GROUPS[r.group],r.name,'','','',+r.value||0,(+r.value||0)*AC_PER_HA,TAGS[r.tag]])));
+  saveFile('control-study.csv',L.join('\n'),'text/csv');
+}
+function importControl(text,name){
+  if(/\.json$/i.test(name)||text.trim().startsWith('{')){ const d=JSON.parse(text); if(!d.control||!Array.isArray(d.control.costs)) throw new Error('not a control study file'); control=d.control; reId(); return; }
+  const rows=parseCSV(text); const meta={}; let hi=rows.findIndex(r=>r[0]==='Type'&&r[2]==='Item'); if(hi<0) throw new Error('table header not found');
+  rows.slice(0,hi).forEach(r=>{ if(r[0]) meta[r[0]]=r[1]; });
+  const gKey=t=>Object.keys(GROUPS).find(k=>GROUPS[k]===t)||'op';
+  const benefits=[], costs=[];
+  rows.slice(hi+1).forEach(r=>{ if(!r[0]) return; const n=x=>x===''||x==null?null:parseFloat(x);
+    if(r[0]==='Benefit'){ const q=n(r[3]); benefits.push({id:nid(),name:r[2],qty:q,unit:r[4]||'',price:q==null?null:n(r[5]),value:q==null?n(r[6]):null,tag:TAG_FROM_TEXT(r[8])}); }
+    else if(r[0]==='Cost') costs.push({id:nid(),group:gKey(r[1]),name:r[2],value:n(r[6])||0,tag:TAG_FROM_TEXT(r[8])}); });
+  const idx=STUDIES.findIndex(s=>(s.c+' — '+s.l)===meta['Study']);
+  control={studyIdx:idx>=0?idx:control.studyIdx, title:meta['Study']||name, url:meta['Source']||'', benefits, costs, waterIn:parseFloat(meta['Irrigation water (in)'])||0, studyRate:parseFloat(meta['Interest on operating capital'])||null, crRate:parseFloat(meta['Capital recovery rate'])||null, note:''};
+}
+
+/* ============================== PAGE 2 · ALTERNATIVES ============================== */
+function renderAlts(){
+  const P=$('p-alts'); P.innerHTML='';
+  const grid=h('div',{class:'alts'}); P.appendChild(grid);
+  alts.forEach((a,k)=>{
+    const card=h('div',{class:'alt'}); card.style.setProperty('--c',ALT_COLORS[k]);
+    const nm=document.createElement('input'); nm.className='nm'; nm.value=a.name; nm.oninput=()=>{ a.name=nm.value; const th=$('th_'+a.id); if(th) th.textContent=a.name; };
+    card.appendChild(nm);
+    if(alts.length>1){ const x=h('button',{class:'x',title:'Remove'},'×'); x.onclick=()=>{ alts.splice(k,1); renderAlts(); }; card.appendChild(x); }
+    const fg=h('div',{class:'fg'});
+    const field=(label,unit,get,set,step=1)=>{ const f=h('div',{class:'f'},`<label>${label}</label>`); const w=h('div',{class:'iw'}); const i=document.createElement('input'); i.type='number'; i.step=step; i.value=get(); i.oninput=()=>{ set(parseFloat(i.value)||0); refresh(); }; w.append(i,h('span',{},unit)); f.appendChild(w); return f; };
+    fg.append(field('Yield change','%',()=>a.yieldPct,v=>a.yieldPct=v,0.5), field('Irrigation change','%',()=>a.irrPct,v=>a.irrPct=v,1));
+    card.appendChild(fg);
+    const f2=h('div',{class:'f',style:'margin-top:10px'},'<label>Treatment amount</label>');
+    const seg=h('div',{class:'seg',style:'margin-bottom:6px'});
+    [['acre','L / acre'],['ppm','ppm in water']].forEach(([m,l])=>{ const b=h('button',{class:a.mode===m?'on':''},l); b.onclick=()=>{ a.mode=m; renderAlts(); }; seg.appendChild(b); });
+    f2.appendChild(seg);
+    const w=h('div',{class:'iw'}); const ai=document.createElement('input'); ai.type='number'; ai.step='any';
+    if(a.mode==='acre'){ ai.value=a.amount; ai.oninput=()=>{ a.amount=parseFloat(ai.value)||0; refresh(); }; w.append(ai,h('span',{},'L/acre')); }
+    else { ai.value=a.ppm; ai.oninput=()=>{ a.ppm=parseFloat(ai.value)||0; refresh(); }; w.append(ai,h('span',{},'ppm')); }
+    f2.appendChild(w); card.appendChild(f2);
+    if(a.mode==='ppm'){ const fs=h('div',{class:'fg',style:'margin-top:10px'}); fs.appendChild(field('Treatment % of season','% of water',()=>a.share??100,v=>a.share=Math.max(0,Math.min(100,v)),5)); card.appendChild(fs); }
+    const f3=h('div',{class:'fg',style:'margin-top:10px'}); f3.appendChild(field('Treatment cost','$/L',()=>a.price,v=>a.price=v,0.5)); card.appendChild(f3);
+    const dose=h('div',{class:'dose',id:'dose_'+a.id}); card.appendChild(dose);
+    grid.appendChild(card);
+  });
+  if(alts.length<3){ const add=h('button',{class:'addalt'},'+ Add alternative'); add.onclick=()=>{ alts.push(newAlt(alts.length+1)); renderAlts(); }; grid.appendChild(add); }
+  for(let i=alts.length+1;i<3;i++) grid.appendChild(h('div',{}));
+
+  const card=h('div',{class:'card'}); card.innerHTML='<h3>Benefits &amp; costs by scenario <span class="sp"></span><button class="btn" id="aImp">Import</button><button class="btn" id="aExp">Export CSV</button></h3>';
+  const wrap=h('div',{class:'table-wrap',id:'altTable'}); card.appendChild(wrap); P.appendChild(card);
+  card.querySelector('#aExp').onclick=exportAltsCsv;
+  card.querySelector('#aImp').onclick=()=>pickFile('.csv,text/csv',(t,n)=>{ try{ importAltsCsv(t); renderAlts(); toast('Imported '+n); }catch(e){ toast('Import failed: '+e.message); } });
+  buildAltTable(); refresh();
+}
+function buildAltTable(){
+  const wrap=$('altTable'); wrap.innerHTML='';
+  const t=document.createElement('table'); t.className='t';
+  t.innerHTML=`<thead><tr><th class="l">Item</th><th class="l">Responds to</th><th>Control</th>${alts.map((a,k)=>`<th id="th_${a.id}" style="color:${ALT_COLORS[k]}">${a.name}</th>`).join('')}</tr></thead>`;
+  const tb=document.createElement('tbody'); t.appendChild(tb);
+  const row=(id,label,tag)=>{ const r=document.createElement('tr'); r.innerHTML=`<td class="l"><span class="nmw">${label}</span></td><td class="l" style="font-size:11.5px;color:var(--muted)">${tag||''}</td><td class="ro" id="c0_${id}"></td>`; const ib=infoBtn(label); if(ib) r.querySelector('.nmw').appendChild(ib);
+    alts.forEach(a=>{ const td=document.createElement('td'); td.id=`td_${a.id}_${id}`; const i=document.createElement('input'); i.type='number'; i.step='any'; i.id=`in_${a.id}_${id}`;
+      i.oninput=()=>{ const v=parseFloat(i.value); if(isNaN(v)) delete a.ov[id]; else a.ov[id]=v; refresh(true); };
+      const rs=h('button',{class:'rs',title:'Reset to calculated value'},'↺'); rs.onclick=()=>{ delete a.ov[id]; refresh(); };
+      const wr=h('div',{style:'display:flex;align-items:center;justify-content:flex-end;gap:2px'}); wr.append(rs,i); td.appendChild(wr); r.appendChild(td); });
+    tb.appendChild(r); };
+  const grp=l=>{ const r=document.createElement('tr'); r.className='grp'; r.innerHTML=`<td class="l" colspan="${3+alts.length}">${l}</td>`; tb.appendChild(r); };
+  const tot=(id,l,cls)=>{ const r=document.createElement('tr'); r.className=cls; r.innerHTML=`<td class="l">${l}</td><td></td><td id="c0_${id}"></td>${alts.map(a=>`<td id="t_${a.id}_${id}"></td>`).join('')}`; tb.appendChild(r); };
+  grp('Benefits'); control.benefits.forEach(r=>row(r.id,r.name,TAGS[r.tag])); tot('B','Total benefits','tot');
+  Object.entries(GROUPS).forEach(([g,l])=>{ grp(l); control.costs.filter(r=>r.group===g).forEach(r=>row(r.id,r.name,TAGS[r.tag])); });
+  grp('Treatment'); row('trt','Treatment product','amount × $/L');
+  tot('C','Total costs','tot'); tot('aev','Net return','aev');
+  wrap.appendChild(t);
+}
+function refresh(typing){
+  const c0=column(null);
+  const put=(id,v)=>{ const e=$(id); if(e) e.textContent=money(v); };
+  control.benefits.concat(control.costs).forEach(r=>put('c0_'+r.id,c0.v[r.id])); put('c0_trt',0);
+  put('c0_B',c0.B); put('c0_C',c0.C); put('c0_aev',c0.aev);
+  alts.forEach(a=>{
+    const c=column(a);
+    const ids=control.benefits.concat(control.costs).map(r=>r.id).concat(['trt']);
+    ids.forEach(id=>{ const inp=$(`in_${a.id}_${id}`), td=$(`td_${a.id}_${id}`); if(!inp) return; const v=id==='trt'?c.T:c.v[id];
+      if(document.activeElement!==inp) inp.value=Math.abs(v)>=100?Math.round(v):+v.toFixed(2); td.classList.toggle('ovr',a.ov[id]!=null); td.querySelector('.rs').style.visibility=a.ov[id]!=null?'visible':'hidden'; });
+    put(`t_${a.id}_B`,c.B); put(`t_${a.id}_C`,c.C+c.T); put(`t_${a.id}_aev`,c.aev);
+    const e=$('t_'+a.id+'_aev'); if(e) e.className=c.aev<c0.aev?'neg':'pos';
+    const d=$('dose_'+a.id); if(d) d.textContent=`${a.mode==='ppm'?fmtNum(control.waterIn*(1+a.irrPct/100)*MM_PER_IN*(a.share??100)/100,0)+' mm treated · ':''}${fmtNum(c.q,2)} L/acre · ${fmtNum(c.q*AC_PER_HA,1)} L/ha → ${money(c.q*a.price)}/acre`;
+  });
+  put('c0_C',c0.C);
+}
+function exportAltsCsv(){
+  const L=[csvRow(['Parameter','Control',...alts.map(a=>a.name)])];
+  const par=(l,f)=>L.push(csvRow([l,'',...alts.map(f)]));
+  par('Yield change (%)',a=>a.yieldPct); par('Irrigation change (%)',a=>a.irrPct); par('Treatment amount unit',a=>a.mode==='acre'?'L/acre':'ppm');
+  par('Treatment amount',a=>a.mode==='acre'?a.amount:a.ppm); par('Treatment % of season (ppm)',a=>a.share??100); par('Treatment cost ($/L)',a=>a.price);
+  L.push(''); L.push(csvRow(['Section','Item','Control',...alts.map(a=>a.name)]));
+  const c0=column(null), cs=alts.map(column);
+  control.benefits.forEach(r=>L.push(csvRow(['Benefit',r.name,c0.v[r.id],...cs.map(c=>c.v[r.id])])));
+  control.costs.forEach(r=>L.push(csvRow(['Cost: '+GROUPS[r.group],r.name,c0.v[r.id],...cs.map(c=>c.v[r.id])])));
+  L.push(csvRow(['Treatment','Treatment product',0,...cs.map(c=>c.T)]));
+  L.push(csvRow(['Total','Total benefits',c0.B,...cs.map(c=>c.B)])); L.push(csvRow(['Total','Total costs',c0.C,...cs.map(c=>c.C+c.T)]));
+  L.push(csvRow(['Total','Net return',c0.aev,...cs.map(c=>c.aev)]));
+  L.push(''); L.push(csvRow(['Settings','Control study',control.title]));
+  saveFile('scenarios.csv',L.join('\n'),'text/csv');
+}
+function importAltsCsv(text){
+  const rows=parseCSV(text); if(!rows.length||rows[0][0]!=='Parameter') throw new Error('not a scenario table');
+  const names=rows[0].slice(2).filter(Boolean).slice(0,3);
+  alts=names.map((n,k)=>({...newAlt(k+1), name:n}));
+  const P=l=>rows.find(r=>r[0]===l);
+  alts.forEach((a,k)=>{ const g=(l,d)=>{ const r=P(l); const v=r?r[2+k]:''; return v===''||v==null?d:v; };
+    a.yieldPct=parseFloat(g('Yield change (%)',a.yieldPct)); a.irrPct=parseFloat(g('Irrigation change (%)',a.irrPct));
+    a.mode=g('Treatment amount unit','L/acre')==='ppm'?'ppm':'acre'; const amt=parseFloat(g('Treatment amount',a.mode==='acre'?a.amount:a.ppm)); if(a.mode==='acre') a.amount=amt; else a.ppm=amt;
+    a.share=parseFloat(g('Treatment % of season (ppm)',100)); a.price=parseFloat(g('Treatment cost ($/L)',a.price)); });
+  const hi=rows.findIndex(r=>r[0]==='Section');
+  rows.slice(hi+1).forEach(r=>{ if(!r[0]||r[0]==='Total'||r[0]==='Settings') return;
+    const item = r[0]==='Treatment' ? {id:'trt'} : (r[0]==='Benefit'?control.benefits:control.costs).find(x=>x.name===r[1]); if(!item) return;
+    alts.forEach((a,k)=>{ const v=parseFloat(r[3+k]); if(isNaN(v)) return; const calc=item.id==='trt'?column(a).T:column(a).v[item.id]; if(Math.abs(calc-v)>0.01) a.ov[item.id]=v; }); });
+}
+
+/* ============================== PAGE 3 · ECONOMICS ============================== */
+let wfSel=0;
+function bars(el, items){
+  el.innerHTML=''; const W=el.clientWidth||600, H=280, M={t:24,r:12,b:44,l:68}, iw=W-M.l-M.r, ih=H-M.t-M.b;
+  const vals=items.map(x=>x.v).concat(0); let lo=Math.min(...vals), hi=Math.max(...vals); if(lo===hi){hi+=1;}
+  const st=niceStep(hi-lo,5); lo=Math.floor(lo/st)*st; hi=Math.ceil(hi/st)*st;
+  const Y=v=>M.t+ih-(v-lo)/(hi-lo)*ih;
+  const svg=document.createElementNS(NS,'svg'); svg.setAttribute('width','100%'); svg.setAttribute('height',H); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  for(let g=lo; g<=hi+st*1e-6; g+=st){ svg.appendChild(el2('line',{x1:M.l,x2:W-M.r,y1:Y(g),y2:Y(g),stroke:'var(--line-soft)'})); svg.appendChild(textEl(M.l-8,Y(g)+4,fmt$(g,{compact:true}),{'text-anchor':'end','font-size':10.5,fill:'var(--muted)'})); }
+  svg.appendChild(el2('line',{x1:M.l,x2:W-M.r,y1:Y(0),y2:Y(0),stroke:'var(--muted)','stroke-width':1.3}));
+  const slot=iw/items.length, bw=Math.min(slot*0.55,90);
+  items.forEach((it,i)=>{ const cx=M.l+slot*(i+.5), y1=Y(Math.max(0,it.v)), y2=Y(Math.min(0,it.v));
+    const r=el2('rect',{x:cx-bw/2,y:y1,width:bw,height:Math.max(1.5,y2-y1),rx:5,fill:it.c}); bindTip(r,`<b>${it.l}</b><br>${fmt$(it.v)}/acre·yr`); svg.appendChild(r);
+    svg.appendChild(textEl(cx,(it.v>=0?y1:y2)+(it.v>=0?-6:14),fmt$(it.v),{'text-anchor':'middle','font-size':11.5,'font-weight':700,fill:'var(--ink)'}));
+    svg.appendChild(textEl(cx,H-18,it.l,{'text-anchor':'middle','font-size':11.5,fill:'var(--ink-soft)','font-weight':600})); });
+  el.appendChild(svg);
+}
+const el2=(t,a)=>el(t,a);
+function renderEcon(){
+  const P=$('p-econ'); P.innerHTML='';
+  const E=alts.map(econ), c0=column(null);
+  const k=h('div',{class:'kpis'});
+  k.appendChild(h('div',{class:'kpi',style:`--c:${CTL_COLOR}`},`<div class="t">Control</div><div class="big">${money(c0.aev)}</div><div class="sub">net return · $/acre·yr</div><div class="row"><span>Benefits</span><b>${money(c0.B)}</b></div><div class="row"><span>Costs</span><b>${money(c0.C)}</b></div><div class="row"><span>$/ha·yr</span><b>${money(c0.aev*AC_PER_HA)}</b></div>`));
+  alts.forEach((a,i)=>{ const e=E[i], good=e.dAEV>=0;
+    k.appendChild(h('div',{class:'kpi',style:`--c:${ALT_COLORS[i]}`},`<div class="t">${a.name}<span class="pill ${good?'g':'r'}">${good?'Profitable':'Not profitable'}</span></div>
+      <div class="big ${good?'pos':'neg'}">${good?'+':''}${money(e.dAEV)}</div><div class="sub">vs. control · $/acre·yr</div>
+      <div class="row"><span>Break-even product price</span><b>${perL(e.breakEven)}</b></div>
+      <div class="row"><span>Return on investment</span><b class="${e.roi<0?'neg':''}">${pct(e.roi)}</b></div>
+      <div class="row"><span>Benefit / cost of treatment</span><b>${Number.isFinite(e.bc)?e.bc.toFixed(2):'—'}</b></div>`)); });
+  P.appendChild(k);
+  const g=h('div',{class:'grid2'});
+  const b1=h('div',{class:'card'}); b1.innerHTML='<h3>Annual net return</h3>'; const bb=h('div',{}); b1.appendChild(bb); g.appendChild(b1);
+  const b2=h('div',{class:'card'}); b2.innerHTML='<h3>Change vs. control <span class="sp"></span></h3>'; const tabs=h('div',{class:'tabsm'}); b2.appendChild(tabs); const wf=h('div',{}); b2.appendChild(wf); g.appendChild(b2);
+  P.appendChild(g);
+  bars(bb,[{l:'Control',v:c0.aev,c:CTL_COLOR},...alts.map((a,i)=>({l:a.name,v:column(a).aev,c:ALT_COLORS[i]}))]);
+  if(wfSel>=alts.length) wfSel=0;
+  const drawWF=()=>{ tabs.innerHTML=''; alts.forEach((a,i)=>{ const b=h('button',{class:i===wfSel?'on':''},a.name); b.onclick=()=>{ wfSel=i; drawWF(); }; tabs.appendChild(b); });
+    const a=alts[wfSel], c=column(a); const st=[]; const dB=c.B-c0.B; if(Math.abs(dB)>0.01) st.push({label:'Revenue',v:dB});
+    let dy=0,dw=0,dm=0,dx=0; control.costs.forEach(r=>{ const d=c.v[r.id]-c0.v[r.id]; if(r.tag==='yield') dy+=d; else if(r.tag==='water') dw+=d; else if(r.tag==='interest') dm+=d; else dx+=d; });
+    if(Math.abs(dy)>0.01) st.push({label:'Yield-linked costs',v:-dy}); if(Math.abs(dw)>0.01) st.push({label:'Irrigation',v:-dw}); if(Math.abs(dx+dm)>0.01) st.push({label:'Other edits',v:-(dx+dm)});
+    st.push({label:'Treatment',v:-c.T});
+    drawWaterfall(wf,st,'Δ net return'); };
+  drawWF();
+  const t=h('div',{class:'card'}); t.innerHTML='<h3>Comparison <span class="sp"></span><button class="btn" id="eExp">Export CSV</button></h3>';
+  const rows=[['Total benefits ($/acre)',c0.B,...alts.map(a=>column(a).B)],['Total costs excl. treatment ($/acre)',c0.C,...alts.map(a=>column(a).C)],['Treatment ($/acre)',0,...alts.map(a=>column(a).T)],['Net return ($/acre·yr)',c0.aev,...alts.map(a=>column(a).aev)],['Net return ($/ha·yr)',c0.aev*AC_PER_HA,...alts.map(a=>column(a).aev*AC_PER_HA)],['Δ net return vs. control ($/acre·yr)',0,...E.map(e=>e.dAEV)]];
+  const extra=[['Break-even product price',...E.map(e=>perL(e.breakEven))],['Return on investment',...E.map(e=>pct(e.roi))],['Benefit / cost of treatment',...E.map(e=>Number.isFinite(e.bc)?e.bc.toFixed(2):'—')]];
+  t.insertAdjacentHTML('beforeend',`<div class="table-wrap"><table class="t"><thead><tr><th class="l">Metric</th><th>Control</th>${alts.map((a,i)=>`<th style="color:${ALT_COLORS[i]}">${a.name}</th>`).join('')}</tr></thead><tbody>
+    ${rows.map((r,i)=>`<tr class="${i===3?'aev':''}"><td class="l">${r[0]}</td>${r.slice(1).map(v=>`<td class="${v<0?'neg':''}">${money(v)}</td>`).join('')}</tr>`).join('')}
+    ${extra.map(r=>`<tr><td class="l">${r[0]}</td><td class="ro">—</td>${r.slice(1).map(v=>`<td>${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+  P.appendChild(t);
+  t.querySelector('#eExp').onclick=()=>{ const L=[csvRow(['Metric','Control',...alts.map(a=>a.name)])]; rows.forEach(r=>L.push(csvRow(r)));
+    L.push(csvRow(['Break-even product price ($/L)','',...E.map(e=>e.breakEven)])); L.push(csvRow(['Return on investment','',...E.map(e=>e.roi)])); L.push(csvRow(['Control study',control.title])); saveFile('economic-comparison.csv',L.join('\n'),'text/csv'); };
+}
+
+/* ============================== PAGE 4 · SENSITIVITY ============================== */
+let hmSel=0, sensMode='control';
+function sensSwitch(P){
+  const sw=h('div',{class:'tabsm',style:'margin-bottom:16px'});
+  [['control','Control'],['alts','Alternatives']].forEach(([m,l])=>{ const b=h('button',{class:sensMode===m?'on':''},l); b.onclick=()=>{ sensMode=m; renderSens(); }; sw.appendChild(b); });
+  P.appendChild(sw);
+}
+/* ---- control sensitivity: y = yield, p = crop price, w = irrigation, o = operating costs (fractions) ---- */
+function ctlNet({y=0,p=0,w=0,o=0}={}){
+  let B=0,C=0;
+  control.benefits.forEach(r=>{ B+=bVal(r)*(r.tag==='yield'?1+y:1)*(1+p); });
+  control.costs.forEach(r=>{ C+=(+r.value||0)*(r.tag==='yield'?1+y:1)*(r.tag==='water'?1+w:1)*(r.group==='op'?1+o:1); });
+  return B-C;
+}
+const CTL_VARS=[
+  {k:'y',l:'Yield',c:'var(--s1)'},
+  {k:'p',l:'Crop price',c:'var(--s4)'},
+  {k:'w',l:'Irrigation water',c:'var(--s3)'},
+  {k:'o',l:'Operating costs',c:'var(--s2)'}];
+function renderCtlSens(P){
+  const N0=ctlNet(), s=STUDIES[control.studyIdx]||{}, main=control.benefits.find(r=>r.qty!=null);
+  const be={}; CTL_VARS.forEach(v=>{ const slope=ctlNet({[v.k]:1})-N0; be[v.k]=Math.abs(slope)>1e-9?-N0/slope:NaN; });
+  const fmtBE=(k)=>{ const x=be[k]; if(!Number.isFinite(x)) return {v:'—',s:'no effect'};
+    const sg=(x>0?'+':'')+fmtNum(x*100,1)+'%';
+    if(k==='y'&&main) return {v:sg, s:`${fmtNum(main.qty*(1+x),main.qty<100?2:0)} ${main.unit}/acre`};
+    if(k==='p'&&main) return {v:sg, s:`${money(main.price*(1+x),true)}/${main.unit}`};
+    if(k==='w') return {v:sg, s:`${fmtNum(control.waterIn*(1+x),1)} in · ${fmtNum(control.waterIn*(1+x)*MM_PER_IN,0)} mm`};
+    return {v:sg, s:`${money(control.costs.filter(r=>r.group==='op').reduce((a,r)=>a+(+r.value||0),0)*(1+x))}/acre operating`}; };
+  const k=h('div',{class:'kpis'});
+  k.appendChild(h('div',{class:'kpi',style:`--c:${CTL_COLOR}`},`<div class="t">Control net return</div><div class="big ${N0<0?'neg':'pos'}">${money(N0)}</div><div class="sub">$/acre·yr · ${control.title}</div>`));
+  CTL_VARS.forEach(v=>{ const b=fmtBE(v.k); k.appendChild(h('div',{class:'kpi',style:`--c:${v.c}`},`<div class="t">${v.l}</div><div class="big">${b.v}</div><div class="sub">change to break even · ${b.s}</div>`)); });
+  P.appendChild(k);
+  const g=h('div',{class:'grid2'}); P.appendChild(g);
+  const c1=h('div',{class:'card'}); c1.innerHTML='<h3>Net return vs. change in each factor</h3>'; const b1=h('div',{}); c1.appendChild(b1);
+  c1.insertAdjacentHTML('beforeend',`<div class="legend">${CTL_VARS.map(v=>`<span><i style="background:${v.c}"></i>${v.l}</span>`).join('')}</div>`); g.appendChild(c1);
+  const c2=h('div',{class:'card'}); c2.innerHTML='<h3>Impact of ±20%</h3>'; const b2=h('div',{}); c2.appendChild(b2); g.appendChild(c2);
+  const xs=Array.from({length:13},(_,i)=>-0.3+i*0.05);
+  drawLines(b1,{xs, series:CTL_VARS.map(v=>({name:v.l,ys:xs.map(x=>ctlNet({[v.k]:x})),color:v.c})), xFmt:v=>(v>0?'+':'')+Math.round(v*100)+'%', xLabel:'Change from study value', baseX:0});
+  // tornado
+  const rows=CTL_VARS.map(v=>({l:v.l,c:v.c,lo:ctlNet({[v.k]:-0.2})-N0,hi:ctlNet({[v.k]:0.2})-N0})).sort((a,b)=>Math.abs(b.hi-b.lo)-Math.abs(a.hi-a.lo));
+  const W=b2.clientWidth||560, rh=46, M={l:118,r:20,t:8,b:28}, H=M.t+M.b+rows.length*rh, iw=W-M.l-M.r, mx=Math.max(...rows.map(r=>Math.max(Math.abs(r.lo),Math.abs(r.hi))),1);
+  const X=v=>M.l+iw/2+v/mx*(iw/2-58);
+  const svg=document.createElementNS(NS,'svg'); svg.setAttribute('width','100%'); svg.setAttribute('height',H); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  svg.appendChild(el('line',{x1:X(0),x2:X(0),y1:M.t,y2:H-M.b,stroke:'var(--muted)','stroke-width':1.2}));
+  rows.forEach((r,i)=>{ const cy=M.t+i*rh+rh/2;
+    svg.appendChild(textEl(M.l-10,cy+4,r.l,{'text-anchor':'end','font-size':12.5,'font-weight':600,fill:'var(--ink)'}));
+    [[r.lo,'−20%',-1],[r.hi,'+20%',1]].forEach(([d,lab,sgn])=>{ const x0=Math.min(X(0),X(d)), w=Math.max(Math.abs(X(d)-X(0)),1.5);
+      const rc=el('rect',{x:x0,y:cy-(sgn<0?13:0),width:w,height:12,rx:3,fill:d<0?'var(--div-neg)':'var(--div-pos)'}); bindTip(rc,`<b>${r.l} ${lab}</b><br>${d>=0?'+':''}${fmt$(d)}/acre·yr`); svg.appendChild(rc);
+      svg.appendChild(textEl(X(d)+(d<0?-5:5),cy+(sgn<0?-3:10),(d>=0?'+':'')+fmt$(d,{compact:true}),{'text-anchor':d<0?'end':'start','font-size':10.5,fill:'var(--ink-soft)'})); }); });
+  svg.appendChild(textEl(X(0),H-8,'change in net return, $/acre·yr',{'text-anchor':'middle','font-size':10.5,fill:'var(--muted)'}));
+  b2.appendChild(svg);
+  c2.insertAdjacentHTML('beforeend','<div class="legend"><span>Upper bar: factor −20%</span><span>Lower bar: factor +20%</span><span><i style="background:var(--div-pos)"></i>gain</span><span><i style="background:var(--div-neg)"></i>loss</span></div>');
+  // table
+  const steps=[-0.3,-0.2,-0.1,0,0.1,0.2,0.3];
+  const t=h('div',{class:'card'}); t.innerHTML='<h3>Net return ($/acre·yr) <span class="sp"></span><button class="btn" id="csExp">Export CSV</button></h3>';
+  t.insertAdjacentHTML('beforeend',`<div class="table-wrap"><table class="t"><thead><tr><th class="l">Change</th>${CTL_VARS.map(v=>`<th style="color:${v.c}">${v.l}</th>`).join('')}</tr></thead><tbody>${
+    steps.map(x=>`<tr class="${x===0?'aev':''}"><td class="l">${x===0?'Study value':(x>0?'+':'')+Math.round(x*100)+'%'}</td>${CTL_VARS.map(v=>{ const n=ctlNet({[v.k]:x}); return `<td class="${n<0?'neg':''}">${money(n)}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`);
+  P.appendChild(t);
+  t.querySelector('#csExp').onclick=()=>{ const L=[csvRow(['Change',...CTL_VARS.map(v=>v.l+' — net return $/acre')])]; steps.forEach(x=>L.push(csvRow([x,...CTL_VARS.map(v=>ctlNet({[v.k]:x}))])));
+    L.push(''); L.push(csvRow(['Break-even change',...CTL_VARS.map(v=>be[v.k])])); L.push(csvRow(['Control study',control.title])); saveFile('control-sensitivity.csv',L.join('\n'),'text/csv'); };
+  // heatmap yield x price
+  const hm=h('div',{class:'card'}); hm.innerHTML='<h3>Yield × crop price</h3>'; const hb=h('div',{}); hm.appendChild(hb); P.appendChild(hm);
+  const ax=Array.from({length:13},(_,i)=>-0.3+i*0.05), ay=Array.from({length:9},(_,i)=>-0.3+i*0.075);
+  drawHeatmap(hb,{xs:ax, ys:ay, z:ay.map(p=>ax.map(y=>ctlNet({y,p}))), xFmt:v=>(v>0?'+':'')+Math.round(v*100)+'%'+(main?' · '+fmtNum(main.qty*(1+v),main.qty<100?1:0):''), yFmt:v=>(v>0?'+':'')+fmtNum(v*100,1)+'%'+(main?' · $'+fmtNum(main.price*(1+v),main.price<20?2:0):''), xLabel:'Yield change'+(main?` (${main.unit}/acre)`:''), yLabel:'Crop price'+(main?` ($/${main.unit})`:''), baseX:0, baseY:0});
+}
+function renderSens(){
+  const P=$('p-sens'); P.innerHTML='';
+  sensSwitch(P);
+  if(sensMode==='control'){ renderCtlSens(P); return; }
+  const legend=()=>`<div class="legend">${alts.map((a,i)=>`<span><i style="background:${ALT_COLORS[i]}"></i>${a.name}</span>`).join('')}</div>`;
+  const chart=(title,xs,fn,xFmt,xLabel,cur)=>{ const c=h('div',{class:'card'}); c.innerHTML=`<h3>${title}</h3>`; const b=h('div',{}); c.appendChild(b); c.insertAdjacentHTML('beforeend',legend()); P.appendChild(c);
+    drawLines(b,{xs, series:alts.map((a,i)=>({name:a.name,ys:xs.map(x=>fn(a,x)),color:ALT_COLORS[i]})), xFmt, xLabel, yFmt:v=>fmt$(v,{compact:true}), markers:cur?[{x:cur,label:'current',color:'var(--accent-ink)'}]:[]}); };
+  const g=h('div',{class:'grid2'}); P.appendChild(g);
+  const holder=P; const tmpP=[];
+  const ys=Array.from({length:21},(_,i)=>-10+i*1.5);
+  chart('Δ net return vs. yield change',ys,(a,x)=>econ({...a,yieldPct:x}).dAEV,v=>fmtNum(v,0)+'%','Yield change (%)');
+  const ws=Array.from({length:21},(_,i)=>-50+i*4);
+  chart('Δ net return vs. irrigation change',ws,(a,x)=>econ({...a,irrPct:x}).dAEV,v=>fmtNum(v,0)+'%','Irrigation change (%)');
+  const pMax=Math.max(...alts.map(a=>Math.max(a.price*2, Number.isFinite(econ(a).breakEven)?econ(a).breakEven*1.3:0)),5);
+  const ps=Array.from({length:21},(_,i)=>pMax*i/20);
+  chart('Δ net return vs. product price',ps,(a,x)=>econ({...a,price:x}).dAEV,v=>'$'+(v<10?v.toFixed(1):v.toFixed(0)),'Product price ($/L)');
+  // move the three line cards into a cleaner layout: first two side by side
+  const cards=[...P.querySelectorAll(':scope > .card')]; g.append(cards[0],cards[1]); drawAgain(cards);
+  // heatmap
+  const hm=h('div',{class:'card'}); hm.innerHTML='<h3>Yield change × product price</h3>'; const tabs=h('div',{class:'tabsm'}); hm.appendChild(tabs); const box=h('div',{}); hm.appendChild(box); P.appendChild(hm);
+  if(hmSel>=alts.length) hmSel=0;
+  const draw=()=>{ tabs.innerHTML=''; alts.forEach((a,i)=>{ const b=h('button',{class:i===hmSel?'on':''},a.name); b.onclick=()=>{ hmSel=i; draw(); }; tabs.appendChild(b); });
+    const a=alts[hmSel]; const xs=withBase(Array.from({length:11},(_,i)=>-5+i*2.5),a.yieldPct), pp=withBase(Array.from({length:9},(_,i)=>pMax*i/8),a.price);
+    drawHeatmap(box,{xs, ys:pp, z:pp.map(p=>xs.map(y=>econ({...a,yieldPct:y,price:p}).dAEV)), xFmt:v=>fmtNum(v,1)+'%', yFmt:v=>'$'+(v<10?v.toFixed(1):v.toFixed(0)), xLabel:'Yield change', yLabel:'Product price ($/L)', baseX:a.yieldPct, baseY:a.price}); };
+  draw();
+}
+function drawAgain(cards){ /* charts were drawn before being moved into the 2-column grid; redraw for correct width */
+  const fns=[['Δ net return vs. yield change',Array.from({length:21},(_,i)=>-10+i*1.5),'yieldPct',v=>fmtNum(v,0)+'%','Yield change (%)'],['Δ net return vs. irrigation change',Array.from({length:21},(_,i)=>-50+i*4),'irrPct',v=>fmtNum(v,0)+'%','Irrigation change (%)']];
+  fns.forEach(([t,xs,key,xf,xl],i)=>{ const b=cards[i].querySelector('div'); drawLines(b,{xs, series:alts.map((a,j)=>({name:a.name,ys:xs.map(x=>econ({...a,[key]:x}).dAEV),color:ALT_COLORS[j]})), xFmt:xf, xLabel:xl, markers:alts.map((a,j)=>({x:a[key],label:'',color:ALT_COLORS[j]}))}); });
+}
+const withBase=(arr,v)=>{ if(!arr.some(a=>Math.abs(a-v)<1e-9)) arr.push(v); return arr.sort((a,b)=>a-b); };
+
+/* ============================== LIBRARY ============================== */
+let libQ='';
+function renderLib(){
+  const P=$('p-lib'); P.innerHTML='';
+  const c=h('div',{class:'card'}); c.innerHTML=`<h3>UC Davis cost &amp; return studies <span class="sp"></span><input class="filter" id="lq" placeholder="Filter…"><button class="btn pri" id="l1">Export CSV</button><button class="btn" id="l2">Export all line items</button></h3>`;
+  const w=h('div',{class:'table-wrap'}); c.appendChild(w); P.appendChild(c);
+  const q=c.querySelector('#lq'); q.value=libQ;
+  const rows=()=>STUDIES.map((s,i)=>{ const y=studyYield(s), G0=studyGross(s), T=s.op+s.cash+s.non; return {i,s,y,G0,T}; });
+  const draw=()=>{ const f=libQ.toLowerCase();
+    w.innerHTML=`<table class="t lib"><thead><tr><th class="l">Crop</th><th class="l">Study</th><th>Yield /ac</th><th class="l">Unit</th><th>Water (in)</th><th>Water (mm)</th><th>Gross $/ac</th><th>Operating</th><th>Cash OH</th><th>Non-cash OH</th><th>Total cost</th><th>Net</th><th>Op. rate</th><th>CR rate</th></tr></thead><tbody>${
+      rows().filter(r=>!f||(r.s.c+' '+r.s.l).toLowerCase().includes(f)).map(r=>`<tr data-i="${r.i}" class="${r.i===control.studyIdx?'cur':''}"><td class="l">${r.s.c}</td><td class="l" style="white-space:normal;min-width:230px">${r.s.l}</td><td>${r.y.qty!=null?fmtNum(r.y.qty,r.y.qty<100?2:0):'—'}</td><td class="l">${r.y.unit}</td><td>${r.s.wIn?fmtNum(r.s.wIn,2):'—'}</td><td>${r.s.wIn?fmtNum(r.s.wIn*MM_PER_IN,0):'—'}</td><td>${money(r.G0)}</td><td>${money(r.s.op)}</td><td>${money(r.s.cash)}</td><td>${money(r.s.non)}</td><td>${money(r.T)}</td><td class="${r.G0-r.T<0?'neg':''}">${money(r.G0-r.T)}</td><td>${fmtPct(r.s.rate,2)}</td><td>${r.s.crRate!=null?fmtPct(r.s.crRate,2):'—'}</td></tr>`).join('')}</tbody></table>`;
+    w.querySelectorAll('tr[data-i]').forEach(t=>t.onclick=()=>{ control=controlFromStudy(+t.dataset.i); alts.forEach(a=>a.ov={}); go('control'); }); };
+  q.oninput=()=>{ libQ=q.value; draw(); }; draw();
+  c.querySelector('#l1').onclick=()=>{ const L=[csvRow(['Crop','Study','Yield per acre','Yield unit','Irrigation water (in)','Irrigation water (mm)','Gross return $/acre','Operating costs $/acre','Interest on operating capital $/acre','Cash overhead $/acre','Non-cash overhead $/acre','Total cost $/acre','Net return $/acre','Operating interest rate','Capital recovery rate','Notes','Study PDF'])];
+    rows().forEach(({s,y,G0,T})=>L.push(csvRow([s.c,s.l,y.qty,y.unit,s.wIn||null,s.wIn?s.wIn*MM_PER_IN:null,G0,s.op,s.int,s.cash,s.non,T,G0-T,s.rate,s.crRate,[s.yNote,s.wNote,s.note].filter(Boolean).join(' '),s.u])));
+    saveFile('uc-davis-cost-studies.csv',L.join('\n'),'text/csv'); };
+  c.querySelector('#l2').onclick=()=>{ const L=[csvRow(['Crop','Study','Type','Group','Item','Quantity per acre','Unit','Price per unit','$/acre','$/ha','Responds to'])];
+    STUDIES.forEach((s,i)=>{ const ct=controlFromStudy(i); ct.benefits.forEach(r=>L.push(csvRow([s.c,s.l,'Benefit','Gross revenue',r.name,r.qty,r.unit,r.price,bVal(r),bVal(r)*AC_PER_HA,TAGS[r.tag]]))); ct.costs.forEach(r=>L.push(csvRow([s.c,s.l,'Cost',GROUPS[r.group],r.name,'','','',r.value,r.value*AC_PER_HA,TAGS[r.tag]]))); });
+    saveFile('uc-davis-cost-studies-line-items.csv',L.join('\n'),'text/csv'); };
+}
+
+/* ============================== NAV ============================== */
+let page='control';
+const PAGES={control:renderControl, alts:renderAlts, econ:renderEcon, sens:renderSens, lib:renderLib};
+function go(p){ page=p; document.querySelectorAll('#steps button').forEach(b=>b.classList.toggle('on',b.dataset.p===p)); document.querySelectorAll('.page').forEach(s=>s.classList.toggle('on',s.id==='p-'+p)); PAGES[p](); window.scrollTo({top:0}); }
+document.querySelectorAll('#steps button').forEach(b=>b.onclick=()=>go(b.dataset.p));
+let _rs; window.addEventListener('resize',()=>{ clearTimeout(_rs); _rs=setTimeout(()=>{ if(page==='econ'||page==='sens') PAGES[page](); },150); });
+go('control');
+</script>
+
+</body>
+</html>
